@@ -46,7 +46,7 @@ public class Doctor {
     @Column(name = "license_number", columnDefinition = "char(50)", unique = true)
     private String licenseNumber;
 
-    @ManyToMany
+    @ManyToMany(cascade = { CascadeType.ALL })
     @JoinTable(
             name = "doctor_patient",
             joinColumns = @JoinColumn(name = "doctor_id"),

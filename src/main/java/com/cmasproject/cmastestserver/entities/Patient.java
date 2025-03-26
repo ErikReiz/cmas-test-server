@@ -45,6 +45,5 @@ public class Patient {
     private String medicalHistory;
 
     @ManyToMany(mappedBy = "patients")
-    @Column(name= "doctor_id")
     Set<Doctor> doctors = new HashSet<>();
 }
