@@ -1,8 +1,8 @@
 package com.cmasproject.cmastestserver.config;
 
+import com.cmasproject.cmastestserver.entities.enums.Role;
 import com.cmasproject.cmastestserver.exceptions.CustomAccessDeniedHandler;
 import com.cmasproject.cmastestserver.exceptions.CustomBasicAuthenticationEntryPoint;
-import com.cmasproject.cmastestserver.entities.enums.Role;
 import com.cmasproject.cmastestserver.security.UsernamePasswordAuthenticationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,8 +20,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 @Configuration
-@Profile("!functional-testing")
-public class SecurityConfig {
+@Profile("functional-testing")
+public class FunctionalTestingSecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
@@ -32,7 +32,7 @@ public class SecurityConfig {
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                .requiresChannel(rcc -> rcc.anyRequest().requiresInsecure())
+                .requiresChannel(rcc -> rcc.anyRequest().requiresSecure())
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint())
                         .accessDeniedHandler(new CustomAccessDeniedHandler()))

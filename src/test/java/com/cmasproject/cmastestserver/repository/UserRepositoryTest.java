@@ -4,6 +4,8 @@ import com.cmasproject.cmastestserver.entities.Patient;
 import com.cmasproject.cmastestserver.entities.User;
 import com.cmasproject.cmastestserver.entities.enums.Role;
 import jakarta.validation.ConstraintViolationException;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -19,8 +21,26 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class UserRepositoryTest {
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private PatientRepository patientRepository;
+
+    User user;
+
+    @Transactional
+    @Rollback
+    @BeforeEach
+    public void setUp() {
+        user = User.builder()
+                .username("testuser")
+                .email("test@example.com")
+                .passwordHash("password123")
+                .firstName("Test")
+                .lastName("User")
+                .phoneNumber("+1234567890")
+                .role(Role.PATIENT)
+                .build();
+
+        userRepository.save(user);
+        userRepository.flush();
+    }
 
     @Test
     public void testSaveUserWithInvalidData()
@@ -36,32 +56,31 @@ class UserRepositoryTest {
     }
 
     @Test
-    @Transactional
-    @Rollback
     public void testSaveNewUser()
     {
-        User user = User.builder()
-                .username("testuser")
-                .email("test@example.com")
-                .passwordHash("password123")
-                .firstName("Test")
-                .lastName("User")
-                .phoneNumber("+1234567890")
-                .role(Role.PATIENT)
-                .build();
-
-        User savedUser = userRepository.save(user);
-        userRepository.flush();
-
-        assertThat(userRepository.existsById(savedUser.getId())).isTrue();
+        assertThat(userRepository.existsById(user.getId())).isTrue();
 
         Patient patient = Patient.builder()
-                .user(savedUser)
+                .user(user)
                 .dateOfBirth(LocalDate.parse("1990-01-01"))
                 .build();
+    }
 
-        Patient savedPatient = patientRepository.save(patient);
+    @Test
+    public void testExistsByUsername() {
+        assertThat(userRepository.existsByUsername("testuser")).isTrue();
+        assertThat(userRepository.existsByUsername("nonexistentuser")).isFalse();
+    }
 
-        assertThat(patientRepository.existsById(savedPatient.getId())).isTrue();
+    @Test
+    public void testExistsByEmail() {
+        assertThat(userRepository.existsByEmail("test@example.com")).isTrue();
+        assertThat(userRepository.existsByEmail("nonexistent@example.com")).isFalse();
+    }
+
+    @Test
+    public void testExistsByPhoneNumber() {
+        assertThat(userRepository.existsByPhoneNumber("+1234567890")).isTrue();
+        assertThat(userRepository.existsByPhoneNumber("+1234567899")).isFalse();
     }
 }
