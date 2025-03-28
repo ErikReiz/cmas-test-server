@@ -22,7 +22,6 @@ import java.util.UUID;
 @Entity
 @Table(name="users")
 public class User {
-
     @Id
     @UuidGenerator
     @Column(length = 36, columnDefinition = "varchar(36)", updatable = false, nullable = false)

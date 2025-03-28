@@ -1,27 +1,20 @@
-package com.cmasproject.cmastestserver.controller;
+package com.cmasproject.cmastestserver.controller.auth;
 
 import com.cmasproject.cmastestserver.constants.ApplicationConstants;
 import com.cmasproject.cmastestserver.constants.TestConstants;
-import com.cmasproject.cmastestserver.mapper.UserMapper;
 import com.cmasproject.cmastestserver.model.LogInRequestDTO;
 import com.cmasproject.cmastestserver.model.SignUpRequestDTO;
-import com.cmasproject.cmastestserver.repository.PatientRepository;
-import com.cmasproject.cmastestserver.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -66,8 +59,7 @@ public class AuthControllerIT {
                             return request;
                         })
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(user))
-                        .accept(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.username", is(user.getUsername())))
                 .andExpect(jsonPath("$.createdDate").exists());
@@ -93,8 +85,7 @@ public class AuthControllerIT {
                             return request;
                         })
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(user))
-                        .accept(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.username").exists());;
 
@@ -104,8 +95,7 @@ public class AuthControllerIT {
                             return request;
                         })
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(user))
-                        .accept(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.username", is("Username already exists.")))
                 .andExpect(jsonPath("$.email", is("Email already exists.")))
@@ -133,8 +123,7 @@ public class AuthControllerIT {
                             return request;
                         })
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(user))
-                        .accept(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isCreated());
 
         LogInRequestDTO loginRequest = LogInRequestDTO.builder()
@@ -148,8 +137,7 @@ public class AuthControllerIT {
                             return request;
                         })
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest))
-                        .accept(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
                 .andExpect(header().exists(ApplicationConstants.JWT_HEADER));
     }
@@ -167,8 +155,7 @@ public class AuthControllerIT {
                             return request;
                         })
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest))
-                        .accept(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error", is("User not found with username: user")));
     }
@@ -193,8 +180,7 @@ public class AuthControllerIT {
                             return request;
                         })
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(user))
-                        .accept(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isCreated());
 
         LogInRequestDTO loginRequest = LogInRequestDTO.builder()
@@ -208,8 +194,7 @@ public class AuthControllerIT {
                             return request;
                         })
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest))
-                        .accept(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message", is("Invalid password!")));
     }

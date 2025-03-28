@@ -1,7 +1,8 @@
-package com.cmasproject.cmastestserver.controller;
+package com.cmasproject.cmastestserver.controller.auth;
 
 import com.cmasproject.cmastestserver.constants.ApplicationConstants;
 import com.cmasproject.cmastestserver.constants.TestConstants;
+import com.cmasproject.cmastestserver.controller.common.AuthController;
 import com.cmasproject.cmastestserver.entities.User;
 import com.cmasproject.cmastestserver.mapper.UserMapper;
 import com.cmasproject.cmastestserver.model.LogInRequestDTO;
@@ -20,7 +21,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -56,9 +56,8 @@ class AuthControllerTest {
                 .build();
 
         mockMvc.perform(post(TestConstants.SIGN_UP_URL)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(signUpRequestDTO)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(signUpRequestDTO)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$[*].password", hasItems("Password is required", "Password must be from 6 to 64 characters long")))
                 .andExpect(jsonPath("$[*].username", hasItems("Username is required", "Username must be between 3 and 50 characters")))
@@ -66,8 +65,8 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$[*].firstName", hasItems("First name is required")))
                 .andExpect(jsonPath("$[*].lastName", hasItems("Last name is required")));
 
-        verify(authService, never()).usernameExists(any(SignUpRequestDTO.class));
-        verify(authService, never()).registerUser(any(SignUpRequestDTO.class));
+        verify(authService, never()).usernameExists(signUpRequestDTO);
+        verify(authService, never()).registerUser(signUpRequestDTO);
         verify(userMapper, never()).userToSignUpResponseDTO(any(User.class));
     }
 
@@ -90,15 +89,14 @@ class AuthControllerTest {
 
         mockMvc.perform(post(TestConstants.SIGN_UP_URL)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(signUpRequest))
-                .accept(MediaType.APPLICATION_JSON))
+                .content(objectMapper.writeValueAsString(signUpRequest)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.username", is("Username already exists.")))
                 .andExpect(jsonPath("$.email", is("Email already exists.")))
                 .andExpect(jsonPath("$['phone number']", is("Phone number already exists.")));
 
-        verify(authService).usernameExists(any(SignUpRequestDTO.class));
-        verify(authService, never()).registerUser(any(SignUpRequestDTO.class));
+        verify(authService).usernameExists(signUpRequest);
+        verify(authService, never()).registerUser(signUpRequest);
         verify(userMapper, never()).userToSignUpResponseDTO(any(User.class));
     }
 
@@ -115,12 +113,18 @@ class AuthControllerTest {
                 .dateOfBirth(LocalDate.parse("1990-01-01"))
                 .build();
 
+
         User savedUser = User.builder()
                 .username(signUpRequest.getUsername())
                 .build();
 
-        SignUpResponseDTO mockResponse = SignUpResponseDTO.builder()
-                .username(savedUser.getUsername())
+        SignUpResponseDTO expectedResponse = SignUpResponseDTO.builder()
+                .username(signUpRequest.getUsername())
+                .email(signUpRequest.getEmail())
+                .firstName(signUpRequest.getFirstName())
+                .lastName(signUpRequest.getLastName())
+                .phoneNumber(signUpRequest.getPhoneNumber())
+                .dateOfBirth(signUpRequest.getDateOfBirth())
                 .build();
 
         given(authService.usernameExists(signUpRequest)).willReturn(false);
@@ -128,16 +132,16 @@ class AuthControllerTest {
         given(authService.phoneNumberExists(signUpRequest)).willReturn(false);
 
         given(authService.registerUser(signUpRequest)).willReturn(savedUser);
-        given(userMapper.userToSignUpResponseDTO(savedUser)).willReturn(mockResponse);
+        given(userMapper.userToSignUpResponseDTO(savedUser)).willReturn(expectedResponse);
 
         mockMvc.perform(post(TestConstants.SIGN_UP_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(signUpRequest)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.username", is("testuser")));
+                .andExpect(content().json(objectMapper.writeValueAsString(expectedResponse)));
 
-        verify(authService).usernameExists(any(SignUpRequestDTO.class));
-        verify(authService).registerUser(any(SignUpRequestDTO.class));
+        verify(authService).usernameExists(signUpRequest);
+        verify(authService).registerUser(signUpRequest);
         verify(userMapper).userToSignUpResponseDTO(savedUser);
     }
 
@@ -155,14 +159,13 @@ class AuthControllerTest {
 
         mockMvc.perform(post(TestConstants.LOG_IN_URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().string("Invalid credentials."));
 
-        verify(authService).authenticateUser(any(LogInRequestDTO.class));
+        verify(authService).authenticateUser(loginRequest);
         verify(mockAuth).isAuthenticated();
-        verify(authService, never()).generateJWTToken(any(Authentication.class));
+        verify(authService, never()).generateJWTToken(mockAuth);
     }
 
     @Test
@@ -181,13 +184,12 @@ class AuthControllerTest {
 
         mockMvc.perform(post(TestConstants.LOG_IN_URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
                 .andExpect(header().string(ApplicationConstants.JWT_HEADER, is(mockJwt)));
 
-        verify(authService).authenticateUser(any(LogInRequestDTO.class));
+        verify(authService).authenticateUser(loginRequest);
         verify(mockAuth).isAuthenticated();
-        verify(authService).generateJWTToken(any(Authentication.class));
+        verify(authService).generateJWTToken(mockAuth);
     }
 }

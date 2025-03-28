@@ -1,4 +1,4 @@
-package com.cmasproject.cmastestserver.controller;
+package com.cmasproject.cmastestserver.controller.common;
 
 import com.cmasproject.cmastestserver.constants.ApplicationConstants;
 import com.cmasproject.cmastestserver.exceptions.UserAlreadyExistsException;
@@ -31,33 +31,35 @@ public class AuthController {
     private final UserMapper userMapper;
 
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@Validated @RequestBody SignUpRequestDTO signUpRequestDTO)
+    public ResponseEntity<?> registerUser(@Validated @RequestBody SignUpRequestDTO signUpRequest)
     {
         Map<String, String> errorMap = new HashMap<>();
 
-        if(authService.usernameExists(signUpRequestDTO)) {
+        if(authService.usernameExists(signUpRequest)) {
             errorMap.put("username", "Username already exists.");
         }
-        if(authService.emailExists(signUpRequestDTO)) {
+        if(authService.emailExists(signUpRequest)) {
             errorMap.put("email", "Email already exists.");
         }
-        if(authService.phoneNumberExists(signUpRequestDTO)) {
+        if(authService.phoneNumberExists(signUpRequest)) {
             errorMap.put("phone number", "Phone number already exists.");
         }
+
         if(!errorMap.isEmpty()){
             throw new UserAlreadyExistsException(errorMap);
         }
 
-        User savedUser = authService.registerUser(signUpRequestDTO);
+        User savedUser = authService.registerUser(signUpRequest);
 
         SignUpResponseDTO response = userMapper.userToSignUpResponseDTO(savedUser);
+        response.setDateOfBirth(signUpRequest.getDateOfBirth());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Validated @RequestBody LogInRequestDTO request) {
-        Authentication authenticationResponse = authService.authenticateUser(request);
+    public ResponseEntity<?> login(@Validated @RequestBody LogInRequestDTO logInRequest) {
+        Authentication authenticationResponse = authService.authenticateUser(logInRequest);
 
         if(authenticationResponse == null || !authenticationResponse.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials.");

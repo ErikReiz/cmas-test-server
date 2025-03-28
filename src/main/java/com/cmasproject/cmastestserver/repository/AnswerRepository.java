@@ -1,9 +1,9 @@
 package com.cmasproject.cmastestserver.repository;
 
-import com.cmasproject.cmastestserver.entities.Note;
+import com.cmasproject.cmastestserver.entities.Answer;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
 
-public interface NoteRepository extends JpaRepository<Note, UUID> {
+public interface AnswerRepository extends JpaRepository<Answer, UUID> {
 }

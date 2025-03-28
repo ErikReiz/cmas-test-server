@@ -1,4 +1,6 @@
 package com.cmasproject.cmastestserver.entities.enums;
 
-public enum FileType {
+public enum TestStatus {
+    ASSIGNED,
+    COMPLETED,
 }

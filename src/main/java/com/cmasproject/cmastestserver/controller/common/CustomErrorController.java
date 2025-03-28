@@ -1,5 +1,6 @@
-package com.cmasproject.cmastestserver.controller;
+package com.cmasproject.cmastestserver.controller.common;
 
+import com.cmasproject.cmastestserver.exceptions.TestCreationException;
 import com.cmasproject.cmastestserver.exceptions.UserAlreadyExistsException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -56,5 +57,12 @@ public class CustomErrorController {
         return ResponseEntity.badRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(errorList);
+    }
+
+    @ExceptionHandler(TestCreationException.class)
+    public ResponseEntity<String> handleTestCreationException(TestCreationException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"error\":\"" + exception.getMessage() + "\"}");
     }
 }
