@@ -2,8 +2,8 @@ package com.cmasproject.cmastestserver.controller.auth;
 
 import com.cmasproject.cmastestserver.constants.ApplicationConstants;
 import com.cmasproject.cmastestserver.constants.TestConstants;
-import com.cmasproject.cmastestserver.model.LogInRequestDTO;
-import com.cmasproject.cmastestserver.model.SignUpRequestDTO;
+import com.cmasproject.cmastestserver.entities.enums.Role;
+import com.cmasproject.cmastestserver.model.registration.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -40,9 +41,11 @@ public class AuthControllerIT {
     @Autowired
     MockMvc mockMvc;
 
+    @Rollback
+    @Transactional
     @Test
-    public void testSuccessfulUserRegistration() throws Exception {
-        SignUpRequestDTO user = SignUpRequestDTO.builder()
+    public void testSuccessfulPatientRegistration() throws Exception {
+        SignUpPatientRequestDTO user = SignUpPatientRequestDTO.builder()
                 .username("testuser")
                 .email("test@example.com")
                 .password("password123")
@@ -52,8 +55,16 @@ public class AuthControllerIT {
                 .dateOfBirth(LocalDate.parse("1990-01-01"))
                 .build();
 
+        SignUpPatientResponseDTO expectedResponse = SignUpPatientResponseDTO.builder()
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .phoneNumber(user.getPhoneNumber())
+                .dateOfBirth(user.getDateOfBirth())
+                .build();
 
-        mockMvc.perform(post(TestConstants.SIGN_UP_URL)
+        mockMvc.perform(post(TestConstants.SIGN_UP_PATIENT_URL)
                         .with(request -> {
                             request.setScheme("https");
                             return request;
@@ -61,15 +72,51 @@ public class AuthControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.username", is(user.getUsername())))
-                .andExpect(jsonPath("$.createdDate").exists());
+                .andExpect(content().json(objectMapper.writeValueAsString(expectedResponse)));
+    }
+
+    @Rollback
+    @Transactional
+    @WithMockUser(roles = "ADMIN")
+    @Test
+    public void testSuccessfulDoctorRegistration() throws Exception {
+        SignUpDoctorRequestDTO user = SignUpDoctorRequestDTO.builder()
+                .username("testdoctor")
+                .email("doctor@example.com")
+                .password("password123")
+                .firstName("Doctor")
+                .lastName("Test")
+                .phoneNumber("+1231231234")
+                .licenseNumber("123456")
+                .specialty("Cardiology")
+                .build();
+
+        SignUpDoctorResponseDTO expectedResponse = SignUpDoctorResponseDTO.builder()
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .phoneNumber(user.getPhoneNumber())
+                .licenseNumber(user.getLicenseNumber())
+                .specialty(user.getSpecialty())
+                .build();
+
+        mockMvc.perform(post(TestConstants.SIGN_UP_DOCTOR_URL)
+                        .with(request -> {
+                            request.setScheme("https");
+                            return request;
+                        })
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(user)))
+                .andExpect(status().isCreated())
+                .andExpect(content().json(objectMapper.writeValueAsString(expectedResponse)));
     }
 
     @Rollback
     @Transactional
     @Test
     public void testDuplicateUserRegistration() throws Exception {
-        SignUpRequestDTO user = SignUpRequestDTO.builder()
+        SignUpPatientRequestDTO user = SignUpPatientRequestDTO.builder()
                 .username("testuser")
                 .email("test@example.com")
                 .password("password123")
@@ -79,7 +126,7 @@ public class AuthControllerIT {
                 .dateOfBirth(LocalDate.parse("1990-01-01"))
                 .build();
 
-        mockMvc.perform(post(TestConstants.SIGN_UP_URL)
+        mockMvc.perform(post(TestConstants.SIGN_UP_PATIENT_URL)
                         .with(request -> {
                             request.setScheme("https");
                             return request;
@@ -89,7 +136,7 @@ public class AuthControllerIT {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.username").exists());;
 
-        mockMvc.perform(post(TestConstants.SIGN_UP_URL)
+        mockMvc.perform(post(TestConstants.SIGN_UP_PATIENT_URL)
                         .with(request -> {
                             request.setScheme("https");
                             return request;
@@ -106,7 +153,7 @@ public class AuthControllerIT {
     @Transactional
     @Test
     public void testSuccessfulLogin() throws Exception {
-        SignUpRequestDTO user = SignUpRequestDTO.builder()
+        SignUpPatientRequestDTO user = SignUpPatientRequestDTO.builder()
                 .username("loginuser")
                 .email("login@example.com")
                 .password("password123")
@@ -117,7 +164,7 @@ public class AuthControllerIT {
                 .build();
 
 
-        mockMvc.perform(post(TestConstants.SIGN_UP_URL)
+        mockMvc.perform(post(TestConstants.SIGN_UP_PATIENT_URL)
                         .with(request -> {
                             request.setScheme("https");
                             return request;
@@ -127,8 +174,8 @@ public class AuthControllerIT {
                 .andExpect(status().isCreated());
 
         LogInRequestDTO loginRequest = LogInRequestDTO.builder()
-                .username("loginuser")
-                .password("password123")
+                .username(user.getUsername())
+                .password(user.getPassword())
                 .build();
 
         mockMvc.perform(post(TestConstants.LOG_IN_URL)
@@ -164,7 +211,7 @@ public class AuthControllerIT {
     @Transactional
     @Test
     public void testValidUsernameInvalidPasswordLogin() throws Exception {
-        SignUpRequestDTO user = SignUpRequestDTO.builder()
+        SignUpPatientRequestDTO user = SignUpPatientRequestDTO.builder()
                 .username("validuser")
                 .email("valid@example.com")
                 .password("correctpassword")
@@ -174,7 +221,7 @@ public class AuthControllerIT {
                 .dateOfBirth(LocalDate.parse("1990-01-01"))
                 .build();
 
-        mockMvc.perform(post(TestConstants.SIGN_UP_URL)
+        mockMvc.perform(post(TestConstants.SIGN_UP_PATIENT_URL)
                         .with(request -> {
                             request.setScheme("https");
                             return request;
@@ -184,7 +231,7 @@ public class AuthControllerIT {
                 .andExpect(status().isCreated());
 
         LogInRequestDTO loginRequest = LogInRequestDTO.builder()
-                .username("validuser")
+                .username(user.getUsername())
                 .password("wrongpassword")
                 .build();
 

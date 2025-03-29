@@ -1,13 +1,15 @@
-package com.cmasproject.cmastestserver.model;
+package com.cmasproject.cmastestserver.model.registration;
 
-import jakarta.validation.constraints.*;
-import lombok.Builder;
-import lombok.Data;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDate;
-
-@Builder
 @Data
+@SuperBuilder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SignUpRequestDTO {
     @NotBlank(message = "Username is required")
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
@@ -29,7 +31,4 @@ public class SignUpRequestDTO {
 
     @Pattern(regexp="^\\+[1-9]\\d{1,14}$", message = "Valid phone number is required")
     private String phoneNumber;
-
-    @Past(message = "Date of birth should be in the past")
-    private LocalDate dateOfBirth;
 }

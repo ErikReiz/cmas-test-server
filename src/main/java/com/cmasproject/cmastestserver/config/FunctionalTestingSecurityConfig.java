@@ -18,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import com.cmasproject.cmastestserver.security.JWTTokenValidatorFilter;
 
 @Configuration
 @Profile("functional-testing")
@@ -36,13 +37,14 @@ public class FunctionalTestingSecurityConfig {
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint())
                         .accessDeniedHandler(new CustomAccessDeniedHandler()))
-                .addFilterBefore(new com.cmasproject.cmastestserver.security.filter.JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
+                .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()))
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/api/auth/signup").permitAll()
+                        .requestMatchers("/api/auth/signup/patient").permitAll()
                         .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/signup/doctor").hasRole(Role.ADMIN.name())
                         .requestMatchers("/api/doctor/**").hasRole(Role.DOCTOR.name())
                         .requestMatchers("/api/patient/**").hasRole(Role.PATIENT.name())
                         .requestMatchers("/api/test/**").hasRole(Role.PATIENT.name())

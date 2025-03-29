@@ -1,21 +1,20 @@
-package com.cmasproject.cmastestserver.model;
+package com.cmasproject.cmastestserver.model.registration;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
-@Builder
+@SuperBuilder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SignUpResponseDTO {
-    private UUID id;
     private String username;
     private String firstName;
     private String lastName;
     private String email;
     private String phoneNumber;
-    private LocalDate dateOfBirth;
     private LocalDateTime createdDate;
 }
