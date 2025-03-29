@@ -3,8 +3,8 @@ package com.cmasproject.cmastestserver.controller.test;
 import com.cmasproject.cmastestserver.constants.ApplicationConstants;
 import com.cmasproject.cmastestserver.constants.TestConstants;
 import com.cmasproject.cmastestserver.model.CreateTestRequestDTO;
-import com.cmasproject.cmastestserver.model.LogInRequestDTO;
-import com.cmasproject.cmastestserver.model.SignUpRequestDTO;
+import com.cmasproject.cmastestserver.model.registration.LogInRequestDTO;
+import com.cmasproject.cmastestserver.model.registration.SignUpPatientRequestDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +52,7 @@ public class TestCreationControllerIT {
     @Transactional
     public void setUp() throws Exception {
         // Create a doctor user
-        SignUpRequestDTO doctorUser = SignUpRequestDTO.builder()
+        SignUpPatientRequestDTO doctorUser = SignUpPatientRequestDTO.builder()
                 .username("doctoruser")
                 .email("doctor@example.com")
                 .password("password123")
@@ -62,7 +62,7 @@ public class TestCreationControllerIT {
                 .dateOfBirth(LocalDate.parse("1980-01-01"))
                 .build();
 
-        mockMvc.perform(post(TestConstants.SIGN_UP_URL)
+        mockMvc.perform(post(TestConstants.SIGN_UP_PATIENT_URL)
                         .with(request -> {
                             request.setScheme("https");
                             return request;
@@ -72,7 +72,7 @@ public class TestCreationControllerIT {
                 .andExpect(status().isCreated());
 
 
-        SignUpRequestDTO patientUser = SignUpRequestDTO.builder()
+        SignUpPatientRequestDTO patientUser = SignUpPatientRequestDTO.builder()
                 .username("patientuser")
                 .email("patient@example.com")
                 .password("password123")
@@ -82,7 +82,7 @@ public class TestCreationControllerIT {
                 .dateOfBirth(LocalDate.parse("1990-01-01"))
                 .build();
 
-        mockMvc.perform(post(TestConstants.SIGN_UP_URL)
+        mockMvc.perform(post(TestConstants.SIGN_UP_PATIENT_URL)
                         .with(request -> {
                             request.setScheme("https");
                             return request;

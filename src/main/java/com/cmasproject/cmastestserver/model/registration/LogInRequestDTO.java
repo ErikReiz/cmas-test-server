@@ -1,4 +1,4 @@
-package com.cmasproject.cmastestserver.model;
+package com.cmasproject.cmastestserver.model.registration;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

@@ -1,4 +1,4 @@
-package com.cmasproject.cmastestserver.security.filter;
+package com.cmasproject.cmastestserver.security;
 
 import com.cmasproject.cmastestserver.constants.ApplicationConstants;
 import io.jsonwebtoken.Claims;
