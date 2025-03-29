@@ -1,12 +1,16 @@
 package com.cmasproject.cmastestserver.services;
 
 import com.cmasproject.cmastestserver.constants.ApplicationConstants;
+import com.cmasproject.cmastestserver.entities.Doctor;
 import com.cmasproject.cmastestserver.entities.Patient;
 import com.cmasproject.cmastestserver.entities.User;
 import com.cmasproject.cmastestserver.entities.enums.Role;
 import com.cmasproject.cmastestserver.mapper.UserMapper;
-import com.cmasproject.cmastestserver.model.LogInRequestDTO;
-import com.cmasproject.cmastestserver.model.SignUpRequestDTO;
+import com.cmasproject.cmastestserver.model.registration.LogInRequestDTO;
+import com.cmasproject.cmastestserver.model.registration.SignUpDoctorRequestDTO;
+import com.cmasproject.cmastestserver.model.registration.SignUpPatientRequestDTO;
+import com.cmasproject.cmastestserver.model.registration.SignUpRequestDTO;
+import com.cmasproject.cmastestserver.repository.DoctorRepository;
 import com.cmasproject.cmastestserver.repository.PatientRepository;
 import com.cmasproject.cmastestserver.repository.UserRepository;
 import io.jsonwebtoken.Jwts;
@@ -17,9 +21,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.yaml.snakeyaml.util.Tuple;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -31,15 +35,17 @@ import java.util.stream.Collectors;
 public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PatientRepository patientRepository;
+    private final DoctorRepository doctorRepository;
+
     private final UserMapper userMapper;
     private final PasswordEncoder encoder;
     private final AuthenticationManager authenticationManager;
     private final Environment env;
 
     @Override
-    public User registerUser(SignUpRequestDTO request)
+    public Tuple<User, Patient> registerPatient(SignUpPatientRequestDTO request)
     {
-        User user = userMapper.signUpRequestDTOToUser(request);
+        User user = userMapper.signUpPatientRequestDTOToUser(request);
         user.setRole(Role.PATIENT);
 
         user.setPasswordHash(encoder.encode(request.getPassword()));
@@ -51,9 +57,31 @@ public class AuthServiceImpl implements AuthService {
                 .dateOfBirth(request.getDateOfBirth())
                 .build();
 
-        patientRepository.save(patient);
+        Patient savedPatient = patientRepository.save(patient);
 
-        return savedUser;
+        return new Tuple<>(user, savedPatient);
+    }
+
+
+    @Override
+    public Tuple<User, Doctor> registerDoctor(SignUpDoctorRequestDTO request)
+    {
+        User user = userMapper.signUpDoctorRequestDTOToUser(request);
+        user.setRole(Role.DOCTOR);
+
+        user.setPasswordHash(encoder.encode(request.getPassword()));
+
+        User savedUser = userRepository.save(user);
+
+        Doctor doctor = Doctor.builder()
+                .user(savedUser)
+                .licenseNumber(request.getLicenseNumber())
+                .specialty(request.getSpecialty())
+                .build();
+
+        Doctor savedDoctor = doctorRepository.save(doctor);
+
+        return new Tuple<>(user, savedDoctor);
     }
 
     @Override
@@ -81,9 +109,9 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    public Boolean usernameExists(SignUpRequestDTO signUpRequestDTO)
+    public Boolean usernameExists(SignUpRequestDTO signUpPatientRequest)
     {
-        return userRepository.existsByUsername(signUpRequestDTO.getUsername());
+        return userRepository.existsByUsername(signUpPatientRequest.getUsername());
     }
 
     @Override

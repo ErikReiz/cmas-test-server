@@ -3,6 +3,7 @@ package com.cmasproject.cmastestserver.config;
 import com.cmasproject.cmastestserver.exceptions.CustomAccessDeniedHandler;
 import com.cmasproject.cmastestserver.exceptions.CustomBasicAuthenticationEntryPoint;
 import com.cmasproject.cmastestserver.entities.enums.Role;
+import com.cmasproject.cmastestserver.security.JWTTokenValidatorFilter;
 import com.cmasproject.cmastestserver.security.UsernamePasswordAuthenticationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,7 +37,7 @@ public class SecurityConfig {
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint())
                         .accessDeniedHandler(new CustomAccessDeniedHandler()))
-                .addFilterBefore(new com.cmasproject.cmastestserver.security.filter.JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
+                .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()))

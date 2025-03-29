@@ -3,11 +3,11 @@ package com.cmasproject.cmastestserver.controller.auth;
 import com.cmasproject.cmastestserver.constants.ApplicationConstants;
 import com.cmasproject.cmastestserver.constants.TestConstants;
 import com.cmasproject.cmastestserver.controller.common.AuthController;
+import com.cmasproject.cmastestserver.entities.Doctor;
+import com.cmasproject.cmastestserver.entities.Patient;
 import com.cmasproject.cmastestserver.entities.User;
 import com.cmasproject.cmastestserver.mapper.UserMapper;
-import com.cmasproject.cmastestserver.model.LogInRequestDTO;
-import com.cmasproject.cmastestserver.model.SignUpRequestDTO;
-import com.cmasproject.cmastestserver.model.SignUpResponseDTO;
+import com.cmasproject.cmastestserver.model.registration.*;
 import com.cmasproject.cmastestserver.services.AuthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -18,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.yaml.snakeyaml.util.Tuple;
 
 import java.time.LocalDate;
 
@@ -45,7 +46,7 @@ class AuthControllerTest {
     @Test
     public void testInvalidSignUpRequest() throws Exception
     {
-        SignUpRequestDTO signUpRequestDTO = SignUpRequestDTO.builder()
+        SignUpPatientRequestDTO signUpPatientRequest = SignUpPatientRequestDTO.builder()
                 .username("")
                 .password("")
                 .dateOfBirth(LocalDate.parse("2026-05-15"))
@@ -55,9 +56,9 @@ class AuthControllerTest {
                 .phoneNumber("")
                 .build();
 
-        mockMvc.perform(post(TestConstants.SIGN_UP_URL)
+        mockMvc.perform(post(TestConstants.SIGN_UP_PATIENT_URL)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(signUpRequestDTO)))
+                    .content(objectMapper.writeValueAsString(signUpPatientRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$[*].password", hasItems("Password is required", "Password must be from 6 to 64 characters long")))
                 .andExpect(jsonPath("$[*].username", hasItems("Username is required", "Username must be between 3 and 50 characters")))
@@ -65,15 +66,15 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$[*].firstName", hasItems("First name is required")))
                 .andExpect(jsonPath("$[*].lastName", hasItems("Last name is required")));
 
-        verify(authService, never()).usernameExists(signUpRequestDTO);
-        verify(authService, never()).registerUser(signUpRequestDTO);
-        verify(userMapper, never()).userToSignUpResponseDTO(any(User.class));
+        verify(authService, never()).usernameExists(signUpPatientRequest);
+        verify(authService, never()).registerPatient(signUpPatientRequest);
+        verify(userMapper, never()).userToSignUpPatientResponseDTO(any(User.class));
     }
 
     @Test
     public void testDuplicateUserRegistration() throws Exception
     {
-        SignUpRequestDTO signUpRequest = SignUpRequestDTO.builder()
+        SignUpPatientRequestDTO signUpRequest = SignUpPatientRequestDTO.builder()
                 .username("testuser")
                 .email("test@example.com")
                 .password("password123")
@@ -87,7 +88,7 @@ class AuthControllerTest {
         given(authService.emailExists(signUpRequest)).willReturn(true);
         given(authService.phoneNumberExists(signUpRequest)).willReturn(true);
 
-        mockMvc.perform(post(TestConstants.SIGN_UP_URL)
+        mockMvc.perform(post(TestConstants.SIGN_UP_PATIENT_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(signUpRequest)))
                 .andExpect(status().isConflict())
@@ -96,14 +97,14 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$['phone number']", is("Phone number already exists.")));
 
         verify(authService).usernameExists(signUpRequest);
-        verify(authService, never()).registerUser(signUpRequest);
-        verify(userMapper, never()).userToSignUpResponseDTO(any(User.class));
+        verify(authService, never()).registerPatient(signUpRequest);
+        verify(userMapper, never()).userToSignUpPatientResponseDTO(any(User.class));
     }
 
     @Test
-    public void testSuccessfulUserRegistration() throws Exception
+    public void testSuccessfulPatientRegistration() throws Exception
     {
-        SignUpRequestDTO signUpRequest = SignUpRequestDTO.builder()
+        SignUpPatientRequestDTO signUpRequest = SignUpPatientRequestDTO.builder()
                 .username("testuser")
                 .email("test@example.com")
                 .password("password123")
@@ -118,7 +119,11 @@ class AuthControllerTest {
                 .username(signUpRequest.getUsername())
                 .build();
 
-        SignUpResponseDTO expectedResponse = SignUpResponseDTO.builder()
+        Patient savedPatient = Patient.builder()
+                .dateOfBirth(signUpRequest.getDateOfBirth())
+                .build();
+
+        SignUpPatientResponseDTO expectedResponse = SignUpPatientResponseDTO.builder()
                 .username(signUpRequest.getUsername())
                 .email(signUpRequest.getEmail())
                 .firstName(signUpRequest.getFirstName())
@@ -131,18 +136,69 @@ class AuthControllerTest {
         given(authService.emailExists(signUpRequest)).willReturn(false);
         given(authService.phoneNumberExists(signUpRequest)).willReturn(false);
 
-        given(authService.registerUser(signUpRequest)).willReturn(savedUser);
-        given(userMapper.userToSignUpResponseDTO(savedUser)).willReturn(expectedResponse);
+        given(authService.registerPatient(signUpRequest)).willReturn(new Tuple<>(savedUser, savedPatient));
+        given(userMapper.userToSignUpPatientResponseDTO(savedUser)).willReturn(expectedResponse);
 
-        mockMvc.perform(post(TestConstants.SIGN_UP_URL)
+        mockMvc.perform(post(TestConstants.SIGN_UP_PATIENT_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(signUpRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(content().json(objectMapper.writeValueAsString(expectedResponse)));
 
         verify(authService).usernameExists(signUpRequest);
-        verify(authService).registerUser(signUpRequest);
-        verify(userMapper).userToSignUpResponseDTO(savedUser);
+        verify(authService).registerPatient(signUpRequest);
+        verify(userMapper).userToSignUpPatientResponseDTO(savedUser);
+    }
+
+    @Test
+    public void testSuccessfulDoctorRegistration() throws Exception
+    {
+        SignUpDoctorRequestDTO signUpRequest = SignUpDoctorRequestDTO.builder()
+                .username("testuser")
+                .email("test@example.com")
+                .password("password123")
+                .firstName("Test")
+                .lastName("User")
+                .phoneNumber("+1234567890")
+                .licenseNumber("123456")
+                .specialty("Cardiology")
+                .build();
+
+        User savedUser = User.builder()
+                .username(signUpRequest.getUsername())
+                .build();
+
+        Doctor savedDoctor = Doctor.builder()
+                .licenseNumber(signUpRequest.getLicenseNumber())
+                .specialty(signUpRequest.getSpecialty())
+                .build();
+
+        SignUpDoctorResponseDTO expectedResponse = SignUpDoctorResponseDTO.builder()
+                .username(signUpRequest.getUsername())
+                .email(signUpRequest.getEmail())
+                .firstName(signUpRequest.getFirstName())
+                .lastName(signUpRequest.getLastName())
+                .phoneNumber(signUpRequest.getPhoneNumber())
+                .licenseNumber(signUpRequest.getLicenseNumber())
+                .specialty(signUpRequest.getSpecialty())
+                .build();
+
+        given(authService.usernameExists(signUpRequest)).willReturn(false);
+        given(authService.emailExists(signUpRequest)).willReturn(false);
+        given(authService.phoneNumberExists(signUpRequest)).willReturn(false);
+
+        given(authService.registerDoctor(signUpRequest)).willReturn(new Tuple<>(savedUser, savedDoctor));
+        given(userMapper.userToSignUpDoctorResponseDTO(savedUser)).willReturn(expectedResponse);
+
+        mockMvc.perform(post(TestConstants.SIGN_UP_DOCTOR_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(signUpRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(content().json(objectMapper.writeValueAsString(expectedResponse)));
+
+        verify(authService).usernameExists(signUpRequest);
+        verify(authService).registerDoctor(signUpRequest);
+        verify(userMapper).userToSignUpDoctorResponseDTO(savedUser);
     }
 
     @Test
