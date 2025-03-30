@@ -83,7 +83,8 @@ class TestCreationControllerTest {
         CreateTestResponseDTO expectedResponse = CreateTestResponseDTO.builder()
                 .message("Test created successfully.")
                 .authorUsername(mockAuthentication.getName())
-                .patientUsername(validRequest.getPatientUsername())
+                .patientFirstName(validRequest.getPatientUsername())
+                .patientLastName(va)
                 .build();
 
         mockMvc.perform(post(TestConstants.CREATE_TEST_RECORD_URL)

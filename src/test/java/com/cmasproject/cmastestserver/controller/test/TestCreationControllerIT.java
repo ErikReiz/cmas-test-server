@@ -100,7 +100,6 @@ public class TestCreationControllerIT {
                 .andExpect(status().isCreated());
 
         doctorUsername = doctorUser.getUsername();
-        patientUsername = patientUser.getUsername();
 
         LogInRequestDTO loginRequest = LogInRequestDTO.builder()
                 .username(doctorUsername)
@@ -127,7 +126,7 @@ public class TestCreationControllerIT {
     public void testSuccessfulTestCreation() throws Exception {
 
         CreateTestRequestDTO createTestRequest = CreateTestRequestDTO.builder()
-                .patientUsername(patientUsername)
+                .patientId(patientUsername)
                 .build();
 
         CreateTestResponseDTO createTestResponse = CreateTestResponseDTO.builder()

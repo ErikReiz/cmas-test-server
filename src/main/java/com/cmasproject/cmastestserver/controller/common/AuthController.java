@@ -29,19 +29,13 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
-    private final UserMapper userMapper;
 
     @PostMapping("/signup/patient")
     public ResponseEntity<?> registerPatient(@Validated @RequestBody SignUpPatientRequestDTO signUpRequest)
     {
         performRegistrationChecks(signUpRequest);
 
-        Tuple<User, Patient> savedUserAndPatient = authService.registerPatient(signUpRequest);
-        User savedUser = savedUserAndPatient._1();
-        Patient savedPatient = savedUserAndPatient._2();
-
-        SignUpPatientResponseDTO response = userMapper.userToSignUpPatientResponseDTO(savedUser);
-        response.setDateOfBirth(savedPatient.getDateOfBirth());
+        SignUpPatientResponseDTO response = authService.registerPatient(signUpRequest);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -51,13 +45,7 @@ public class AuthController {
     {
         performRegistrationChecks(signUpRequest);
 
-        Tuple<User, Doctor> savedUserAndDoctor = authService.registerDoctor(signUpRequest);
-        User savedUser = savedUserAndDoctor._1();
-        Doctor savedDoctor = savedUserAndDoctor._2();
-
-        SignUpDoctorResponseDTO response = userMapper.userToSignUpDoctorResponseDTO(savedUser);
-        response.setLicenseNumber(savedDoctor.getLicenseNumber());
-        response.setSpecialty(savedDoctor.getSpecialty());
+        SignUpDoctorResponseDTO response = authService.registerDoctor(signUpRequest);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

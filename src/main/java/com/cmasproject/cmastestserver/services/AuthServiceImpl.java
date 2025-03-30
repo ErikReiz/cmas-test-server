@@ -6,10 +6,7 @@ import com.cmasproject.cmastestserver.entities.Patient;
 import com.cmasproject.cmastestserver.entities.User;
 import com.cmasproject.cmastestserver.entities.enums.Role;
 import com.cmasproject.cmastestserver.mapper.UserMapper;
-import com.cmasproject.cmastestserver.model.registration.LogInRequestDTO;
-import com.cmasproject.cmastestserver.model.registration.SignUpDoctorRequestDTO;
-import com.cmasproject.cmastestserver.model.registration.SignUpPatientRequestDTO;
-import com.cmasproject.cmastestserver.model.registration.SignUpRequestDTO;
+import com.cmasproject.cmastestserver.model.registration.*;
 import com.cmasproject.cmastestserver.repository.DoctorRepository;
 import com.cmasproject.cmastestserver.repository.PatientRepository;
 import com.cmasproject.cmastestserver.repository.UserRepository;
@@ -43,7 +40,7 @@ public class AuthServiceImpl implements AuthService {
     private final Environment env;
 
     @Override
-    public Tuple<User, Patient> registerPatient(SignUpPatientRequestDTO request)
+    public SignUpPatientResponseDTO registerPatient(SignUpPatientRequestDTO request)
     {
         User user = userMapper.signUpPatientRequestDTOToUser(request);
         user.setRole(Role.PATIENT);
@@ -59,12 +56,15 @@ public class AuthServiceImpl implements AuthService {
 
         Patient savedPatient = patientRepository.save(patient);
 
-        return new Tuple<>(user, savedPatient);
+        SignUpPatientResponseDTO response = userMapper.userToSignUpPatientResponseDTO(savedUser);
+        response.setDateOfBirth(savedPatient.getDateOfBirth());
+
+        return response;
     }
 
 
     @Override
-    public Tuple<User, Doctor> registerDoctor(SignUpDoctorRequestDTO request)
+    public SignUpDoctorResponseDTO registerDoctor(SignUpDoctorRequestDTO request)
     {
         User user = userMapper.signUpDoctorRequestDTOToUser(request);
         user.setRole(Role.DOCTOR);
@@ -81,7 +81,11 @@ public class AuthServiceImpl implements AuthService {
 
         Doctor savedDoctor = doctorRepository.save(doctor);
 
-        return new Tuple<>(user, savedDoctor);
+        SignUpDoctorResponseDTO response = userMapper.userToSignUpDoctorResponseDTO(savedUser);
+        response.setLicenseNumber(savedDoctor.getLicenseNumber());
+        response.setSpecialty(savedDoctor.getSpecialty());
+
+        return response;
     }
 
     @Override

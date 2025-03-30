@@ -29,7 +29,7 @@ public class Doctor {
 
     @OneToOne
     @MapsId
-    @JoinColumn(columnDefinition = "varchar(36)", nullable = false)
+    @JoinColumn(columnDefinition = "varchar(36)", nullable = false, unique = true)
     @JdbcTypeCode(SqlTypes.VARCHAR)
     private User user;
 
