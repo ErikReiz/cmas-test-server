@@ -63,7 +63,7 @@ public class PatientServiceImpl implements PatientService {
                     totalScore.addAndGet(dto.getScore());
 
                     return Answer.builder()
-                            .testAssignment(testAssignment)
+                            .testRecord(testAssignment)
                             .question(question)
                             .score(dto.getScore())
                             .build();

@@ -23,7 +23,7 @@ public class Doctor {
 
     @Id
     @UuidGenerator
-    @Column(length = 36, columnDefinition = "varchar(36)", updatable = false, nullable = false)
+    @Column(name="doctor_id", length = 36, columnDefinition = "varchar(36)", updatable = false, nullable = false)
     @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID id;
 
