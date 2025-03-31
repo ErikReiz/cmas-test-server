@@ -22,6 +22,9 @@ jobs:
       - name: Build with Maven
         run: mvn clean package
 
+      - name: Wait to Avoid SCM Conflicts
+        run: sleep 30s
+
       - name: Login to Azure
         uses: azure/login@v1
         with:
@@ -32,6 +35,8 @@ jobs:
         with:
           app-name: 'cmas-test-server'
           package: './target/cmas-test-server-0.0.1-SNAPSHOT.jar'
+          retries: 3  # Retry up to 3 times
+          delay-between-attempts: 60s
           app-settings-json: |
             [
               {
