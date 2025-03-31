@@ -2,9 +2,11 @@ package com.cmasproject.cmastestserver.controller.test;
 
 import com.cmasproject.cmastestserver.constants.ApplicationConstants;
 import com.cmasproject.cmastestserver.constants.TestConstants;
-import com.cmasproject.cmastestserver.model.CreateTestRequestDTO;
-import com.cmasproject.cmastestserver.model.LogInRequestDTO;
-import com.cmasproject.cmastestserver.model.SignUpRequestDTO;
+import com.cmasproject.cmastestserver.model.test.doctor.CreateTestRequestDTO;
+import com.cmasproject.cmastestserver.model.PatientResponseDTO;
+import com.cmasproject.cmastestserver.model.registration.*;
+import com.cmasproject.cmastestserver.services.AuthService;
+import com.cmasproject.cmastestserver.services.DoctorService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +16,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -158,7 +161,7 @@ public class TestCreationControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createTestRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", is("Patient does not exist.")));
+                .andExpect(jsonPath("$.error", is("Could not find Patient for ID:" + createTestRequest.getPatientId())));
     }
 
     @Test

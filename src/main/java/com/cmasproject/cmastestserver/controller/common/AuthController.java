@@ -29,7 +29,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
-    private final UserMapper userMapper;
 
     @PostMapping("/signup/patient")
     public ResponseEntity<?> registerPatient(@Validated @RequestBody SignUpPatientRequestDTO signUpRequest)
@@ -46,8 +45,7 @@ public class AuthController {
     {
         performRegistrationChecks(signUpRequest);
 
-        SignUpResponseDTO response = userMapper.userToSignUpResponseDTO(savedUser);
-        response.setDateOfBirth(signUpRequest.getDateOfBirth());
+        SignUpDoctorResponseDTO response = authService.registerDoctor(signUpRequest);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
