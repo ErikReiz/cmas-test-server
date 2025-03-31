@@ -8,6 +8,6 @@ import java.util.Set;
 import java.util.UUID;
 
 public interface DoctorService {
-    Set<PatientResponseDTO> getAllPatients();
-    Set<PatientResponseDTO> assignPatients(List<UUID> patientIds, String doctorUsername);
+    List<PatientResponseDTO> getAllPatients();
+    List<PatientResponseDTO> assignPatients(List<UUID> patientIds, String doctorUsername);
 }

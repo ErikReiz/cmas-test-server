@@ -2,8 +2,6 @@ package com.cmasproject.cmastestserver.controller.auth;
 
 import com.cmasproject.cmastestserver.constants.ApplicationConstants;
 import com.cmasproject.cmastestserver.constants.TestConstants;
-import com.cmasproject.cmastestserver.entities.enums.Role;
-import com.cmasproject.cmastestserver.model.CreateTestRequestDTO;
 import com.cmasproject.cmastestserver.model.registration.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
@@ -13,7 +11,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;

@@ -27,7 +27,7 @@ public class DoctorController {
 
     @GetMapping("/patients")
     public ResponseEntity<?> getPatients() {
-        Set<PatientResponseDTO> response = doctorService.getAllPatients();
+        List<PatientResponseDTO> response = doctorService.getAllPatients();
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -37,7 +37,7 @@ public class DoctorController {
     {
 
         String doctorUsername = authentication.getName();
-        Set<PatientResponseDTO> response = doctorService.assignPatients(request.getPatientIds(), doctorUsername);
+        List<PatientResponseDTO> response = doctorService.assignPatients(request.getPatientIds(), doctorUsername);
 
         return ResponseEntity.status(HttpStatus.OK).body(objectMapper.writeValueAsString("Patients assigned successfully." + response));
     }

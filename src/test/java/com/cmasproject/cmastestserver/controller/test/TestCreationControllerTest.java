@@ -3,8 +3,8 @@ package com.cmasproject.cmastestserver.controller.test;
 import com.cmasproject.cmastestserver.constants.TestConstants;
 import com.cmasproject.cmastestserver.controller.doctor.TestCreationController;
 import com.cmasproject.cmastestserver.entities.TestRecord;
-import com.cmasproject.cmastestserver.model.CreateTestRequestDTO;
-import com.cmasproject.cmastestserver.model.CreateTestResponseDTO;
+import com.cmasproject.cmastestserver.model.test.doctor.CreateTestRequestDTO;
+import com.cmasproject.cmastestserver.model.test.doctor.CreateTestResponseDTO;
 import com.cmasproject.cmastestserver.services.TestService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +19,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -43,11 +42,15 @@ class TestCreationControllerTest {
     private CreateTestRequestDTO validRequest;
     private TestRecord mockTest;
     private Authentication mockAuthentication;
+    private UUID patientId;
+    private CreateTestResponseDTO expectedResponse;
 
     @BeforeEach
     void setUp() {
+        patientId = UUID.randomUUID();
+
         validRequest = CreateTestRequestDTO.builder()
-                .patientUsername("patient123")
+                .patientId(patientId)
                 .build();
 
         UUID testId = UUID.randomUUID();
@@ -57,11 +60,18 @@ class TestCreationControllerTest {
 
         mockAuthentication = mock(Authentication.class);
         given(mockAuthentication.getName()).willReturn("doctor123");
+
+        expectedResponse = CreateTestResponseDTO.builder()
+                .message("Test created successfully.")
+                .authorUsername(mockAuthentication.getName())
+                .patientFirstName("PatientFirstName")
+                .patientLastName("PatientLastName")
+                .build();
     }
 
     @Test
     void testPatientDoesNotExist() throws Exception {
-        given(testService.isPatientExists(any(CreateTestRequestDTO.class))).willReturn(false);
+        given(testService.isPatientExists(any(UUID.class))).willReturn(false);
 
         mockMvc.perform(post(TestConstants.CREATE_TEST_RECORD_URL)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -70,22 +80,14 @@ class TestCreationControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Patient does not exist."));
 
-        verify(testService).isPatientExists(any(CreateTestRequestDTO.class));
-        verify(testService, never()).createTest(anyString(), anyString());
+        verify(testService).isPatientExists(patientId);
+        verify(testService, never()).createTest(anyString(), any(UUID.class));
     }
 
     @Test
     void testSuccessfulTestCreation() throws Exception {
-        given(testService.isPatientExists(any(CreateTestRequestDTO.class))).willReturn(true);
-        given(testService.createTest(anyString(), anyString())).willReturn(mockTest);
-        given(testService.createTest(mockAuthentication.getName(), validRequest.getPatientUsername())).willReturn(mockTest);
-
-        CreateTestResponseDTO expectedResponse = CreateTestResponseDTO.builder()
-                .message("Test created successfully.")
-                .authorUsername(mockAuthentication.getName())
-                .patientFirstName(validRequest.getPatientUsername())
-                .patientLastName(va)
-                .build();
+        given(testService.isPatientExists(any(UUID.class))).willReturn(true);
+        given(testService.createTest(anyString(), any(UUID.class))).willReturn(expectedResponse);
 
         mockMvc.perform(post(TestConstants.CREATE_TEST_RECORD_URL)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -94,14 +96,14 @@ class TestCreationControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(content().json(objectMapper.writeValueAsString(expectedResponse)));
 
-        verify(testService).isPatientExists(any(CreateTestRequestDTO.class));
-        verify(testService).createTest(mockAuthentication.getName(), validRequest.getPatientUsername());
+        verify(testService).isPatientExists(patientId);
+        verify(testService).createTest(mockAuthentication.getName(), patientId);
     }
 
     @Test
     void testInvalidRequest() throws Exception {
         CreateTestRequestDTO invalidRequest = CreateTestRequestDTO.builder()
-                .patientUsername("")
+                .patientId(null)
                 .build();
 
         mockMvc.perform(post(TestConstants.CREATE_TEST_RECORD_URL)
@@ -110,7 +112,7 @@ class TestCreationControllerTest {
                         .principal(mockAuthentication))
                 .andExpect(status().isBadRequest());
 
-        verify(testService, never()).isPatientExists(any(CreateTestRequestDTO.class));
-        verify(testService, never()).createTest(anyString(), anyString());
+        verify(testService, never()).isPatientExists(any(UUID.class));
+        verify(testService, never()).createTest(anyString(), any(UUID.class));
     }
 }

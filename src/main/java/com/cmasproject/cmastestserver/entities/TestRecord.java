@@ -2,6 +2,7 @@ package com.cmasproject.cmastestserver.entities;
 
 import com.cmasproject.cmastestserver.entities.enums.TestStatus;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -35,6 +36,8 @@ public class TestRecord {
     @ManyToOne
     @JoinColumn(name = "doctor_id", nullable = false)
     private Doctor doctor;
+
+    private Integer totalCmasScore;
 
     @CreationTimestamp
     private LocalDateTime assignedDate;

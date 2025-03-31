@@ -1,9 +1,7 @@
-package com.cmasproject.cmastestserver.model;
+package com.cmasproject.cmastestserver.model.test.doctor;
 
 import lombok.Builder;
 import lombok.Data;
-
-import java.util.UUID;
 
 @Data
 @Builder

@@ -2,12 +2,11 @@ package com.cmasproject.cmastestserver.controller.test;
 
 import com.cmasproject.cmastestserver.constants.ApplicationConstants;
 import com.cmasproject.cmastestserver.constants.TestConstants;
-import com.cmasproject.cmastestserver.model.CreateTestRequestDTO;
-import com.cmasproject.cmastestserver.model.CreateTestResponseDTO;
-import com.cmasproject.cmastestserver.model.registration.LogInRequestDTO;
-import com.cmasproject.cmastestserver.model.registration.SignUpDoctorRequestDTO;
-import com.cmasproject.cmastestserver.model.registration.SignUpDoctorResponseDTO;
-import com.cmasproject.cmastestserver.model.registration.SignUpPatientRequestDTO;
+import com.cmasproject.cmastestserver.model.test.doctor.CreateTestRequestDTO;
+import com.cmasproject.cmastestserver.model.PatientResponseDTO;
+import com.cmasproject.cmastestserver.model.registration.*;
+import com.cmasproject.cmastestserver.services.AuthService;
+import com.cmasproject.cmastestserver.services.DoctorService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,14 +16,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.test.context.annotation.SecurityTestExecutionListeners;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -34,6 +30,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
 
 @SpringBootTest
 @Testcontainers
@@ -52,9 +50,17 @@ public class TestCreationControllerIT {
     @Autowired
     MockMvc mockMvc;
 
+    @Autowired
+    AuthService authService;
+
+    @Autowired
+    DoctorService doctorService;
+
     private String doctorToken;
     private String doctorUsername;
-    private String patientUsername;
+    private UUID patientId;
+    private String patientFirstName;
+    private String patientLastName;
 
     @BeforeEach
     @Rollback
@@ -71,14 +77,7 @@ public class TestCreationControllerIT {
                 .specialty("Cardiology")
                 .build();
 
-        mockMvc.perform(post(TestConstants.SIGN_UP_DOCTOR_URL)
-                        .with(request -> {
-                            request.setScheme("https");
-                            return request;
-                        })
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(doctorUser)))
-                .andExpect(status().isCreated());
+        authService.registerDoctor(doctorUser);
 
         SignUpPatientRequestDTO patientUser = SignUpPatientRequestDTO.builder()
                 .username("patientuser")
@@ -90,14 +89,15 @@ public class TestCreationControllerIT {
                 .dateOfBirth(LocalDate.parse("1990-01-01"))
                 .build();
 
-        mockMvc.perform(post(TestConstants.SIGN_UP_PATIENT_URL)
-                        .with(request -> {
-                            request.setScheme("https");
-                            return request;
-                        })
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(patientUser)))
-                .andExpect(status().isCreated());
+        authService.registerPatient(patientUser);
+
+        List<UUID> patientIds = doctorService.getAllPatients().stream()
+                .map(PatientResponseDTO::getPatientId)
+                .toList();
+
+        patientId = doctorService.assignPatients(patientIds, doctorUser.getUsername()).get(0).getPatientId();
+        patientFirstName = patientUser.getFirstName();
+        patientLastName = patientUser.getLastName();
 
         doctorUsername = doctorUser.getUsername();
 
@@ -126,13 +126,7 @@ public class TestCreationControllerIT {
     public void testSuccessfulTestCreation() throws Exception {
 
         CreateTestRequestDTO createTestRequest = CreateTestRequestDTO.builder()
-                .patientId(patientUsername)
-                .build();
-
-        CreateTestResponseDTO createTestResponse = CreateTestResponseDTO.builder()
-                .message("Test created successfully.")
-                .authorUsername(doctorUsername)
-                .patientUsername(patientUsername)
+                .patientId(patientId)
                 .build();
 
         mockMvc.perform(post(TestConstants.CREATE_TEST_RECORD_URL)
@@ -144,7 +138,10 @@ public class TestCreationControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createTestRequest)))
                 .andExpect(status().isCreated())
-                .andExpect(content().json(objectMapper.writeValueAsString(createTestResponse)));
+                .andExpect(jsonPath("$.message", is("Test created successfully.")))
+                .andExpect(jsonPath("$.authorUsername", is(doctorUsername)))
+                .andExpect(jsonPath("$.patientFirstName", is(patientFirstName)))
+                .andExpect(jsonPath("$.patientLastName", is(patientLastName)));
     }
 
     @Test
@@ -152,7 +149,7 @@ public class TestCreationControllerIT {
     @Transactional
     public void testInvalidTestCreationWithNonExistentPatient() throws Exception {
         CreateTestRequestDTO createTestRequest = CreateTestRequestDTO.builder()
-                .patientUsername("nonexistentpatient")
+                .patientId(UUID.randomUUID())
                 .build();
 
         mockMvc.perform(post(TestConstants.CREATE_TEST_RECORD_URL)
@@ -170,9 +167,9 @@ public class TestCreationControllerIT {
     @Test
     @Rollback
     @Transactional
-    public void testInvalidTestCreationWithEmptyPatientUsername() throws Exception {
+    public void testInvalidTestCreationWithEmptyPatientId() throws Exception {
         CreateTestRequestDTO createTestRequest = CreateTestRequestDTO.builder()
-                .patientUsername("")
+                .patientId(null)
                 .build();
 
         mockMvc.perform(post(TestConstants.CREATE_TEST_RECORD_URL)
@@ -184,7 +181,7 @@ public class TestCreationControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createTestRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$[*].patientUsername").exists());
+                .andExpect(jsonPath("$[*].patientId").exists());
     }
 
     @Test
@@ -192,7 +189,7 @@ public class TestCreationControllerIT {
     @Transactional
     public void testUnauthorizedTestCreation() throws Exception {
         CreateTestRequestDTO createTestRequest = CreateTestRequestDTO.builder()
-                .patientUsername(patientUsername)
+                .patientId(patientId)
                 .build();
 
         mockMvc.perform(post(TestConstants.CREATE_TEST_RECORD_URL)

@@ -1,8 +1,8 @@
 package com.cmasproject.cmastestserver.controller.common;
 
-import com.cmasproject.cmastestserver.exceptions.TestCreationException;
 import com.cmasproject.cmastestserver.exceptions.UserAlreadyExistsException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -44,6 +44,13 @@ public class CustomErrorController {
                 .body("{\"error\":\"" + exception.getMessage() + "\"}");
     }
 
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<String> handleUsernameNotFoundErrors(EntityNotFoundException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"error\":\"" + exception.getMessage() + "\"}");
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<List<Map<String, String>>> handleBindErrors(MethodArgumentNotValidException exception) {
         List<Map<String, String>> errorList = exception.getFieldErrors().stream()
@@ -57,12 +64,5 @@ public class CustomErrorController {
         return ResponseEntity.badRequest()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(errorList);
-    }
-
-    @ExceptionHandler(TestCreationException.class)
-    public ResponseEntity<String> handleTestCreationException(TestCreationException exception) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body("{\"error\":\"" + exception.getMessage() + "\"}");
     }
 }

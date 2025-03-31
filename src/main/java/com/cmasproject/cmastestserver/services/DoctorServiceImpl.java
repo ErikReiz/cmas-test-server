@@ -26,15 +26,15 @@ public class DoctorServiceImpl implements DoctorService, PatientMapper {
     private final UserRepository userRepository;
 
     @Override
-    public Set<PatientResponseDTO> getAllPatients()
+    public List<PatientResponseDTO> getAllPatients()
     {
         return patientRepository.findAll()
                 .stream().map(this::mapToPatientResponseDTO)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Set<PatientResponseDTO> assignPatients(List<UUID> patientIds, String doctorUsername)
+    public List<PatientResponseDTO> assignPatients(List<UUID> patientIds, String doctorUsername)
     {
         User doctorUser = userRepository.getUserByUsername(doctorUsername);
         Doctor doctor = doctorRepository.getDoctorByUser(doctorUser);
@@ -42,6 +42,6 @@ public class DoctorServiceImpl implements DoctorService, PatientMapper {
         doctor.setPatients(new HashSet<>(patients));
         return doctorRepository.save(doctor).getPatients().stream()
                 .map(this::mapToPatientResponseDTO)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 }

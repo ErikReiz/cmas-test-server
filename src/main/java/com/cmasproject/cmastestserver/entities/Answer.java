@@ -34,9 +34,8 @@ public class Answer {
     @JoinColumn(name = "question_id", nullable = false)
     private Question question;
 
-    @Size(max=500)
-    @Column(columnDefinition = "TEXT(500)", nullable = false)
-    private String response;
+    @Column(nullable = false)
+    private Integer score;
 
     @Column(name = "video_link")
     private String videoLink;
