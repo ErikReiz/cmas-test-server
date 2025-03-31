@@ -21,7 +21,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 @Configuration
-@Profile("!functional-testing")
+@Profile("!integration-testing")
 public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
