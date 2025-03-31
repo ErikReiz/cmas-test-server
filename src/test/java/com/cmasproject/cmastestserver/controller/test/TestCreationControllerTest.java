@@ -78,7 +78,7 @@ class TestCreationControllerTest {
                         .content(objectMapper.writeValueAsString(validRequest))
                         .principal(mockAuthentication))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Patient does not exist."));
+                .andExpect(jsonPath("$.error").value("Could not find Patient for ID:" + patientId));
 
         verify(testService).isPatientExists(patientId);
         verify(testService, never()).createTest(anyString(), any(UUID.class));
