@@ -2,7 +2,6 @@ package com.cmasproject.cmastestserver.controller.auth;
 
 import com.cmasproject.cmastestserver.constants.ApplicationConstants;
 import com.cmasproject.cmastestserver.constants.TestConstants;
-import com.cmasproject.cmastestserver.entities.enums.Role;
 import com.cmasproject.cmastestserver.model.registration.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
@@ -242,7 +241,7 @@ public class AuthControllerIT {
                         })
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message", is("Invalid password!")));
     }
 }

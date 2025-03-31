@@ -59,11 +59,6 @@ class UserRepositoryTest {
     public void testSaveNewUser()
     {
         assertThat(userRepository.existsById(user.getId())).isTrue();
-
-        Patient patient = Patient.builder()
-                .user(user)
-                .dateOfBirth(LocalDate.parse("1990-01-01"))
-                .build();
     }
 
     @Test

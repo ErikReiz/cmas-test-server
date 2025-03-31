@@ -14,16 +14,15 @@ public class CustomBasicAuthenticationEntryPoint implements AuthenticationEntryP
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException
     {
         LocalDateTime currentTimeStamp = LocalDateTime.now();
-        String message = (authException != null && authException.getMessage() != null) ? authException.getMessage()
-                : "Unauthorized";
+        String message = (authException != null && authException.getMessage() != null) ? authException.getMessage() : "Unauthorized";
         response.setHeader("cmast-server-error-reason", "Authentication failed");
-        response.setStatus(HttpStatus.BAD_REQUEST.value());
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
 
         response.setContentType("application/json;charset=UTF-8");
 
         String jsonResponse =
                 String.format("{\"timestamp\": \"%s\", \"error\": \"%s\", \"message\": \"%s\"}",
-                        currentTimeStamp, HttpStatus.BAD_REQUEST.getReasonPhrase(), message);
+                        currentTimeStamp, HttpStatus.UNAUTHORIZED.getReasonPhrase(), message);
         response.getWriter().write(jsonResponse);
     }
 }

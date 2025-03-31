@@ -40,8 +40,6 @@ class AuthControllerTest {
 
     @MockitoBean
     AuthService authService;
-    @MockitoBean
-    UserMapper userMapper;
 
     @Test
     public void testInvalidSignUpRequest() throws Exception
@@ -68,7 +66,6 @@ class AuthControllerTest {
 
         verify(authService, never()).usernameExists(signUpPatientRequest);
         verify(authService, never()).registerPatient(signUpPatientRequest);
-        verify(userMapper, never()).userToSignUpPatientResponseDTO(any(User.class));
     }
 
     @Test
@@ -98,7 +95,6 @@ class AuthControllerTest {
 
         verify(authService).usernameExists(signUpRequest);
         verify(authService, never()).registerPatient(signUpRequest);
-        verify(userMapper, never()).userToSignUpPatientResponseDTO(any(User.class));
     }
 
     @Test
@@ -136,8 +132,7 @@ class AuthControllerTest {
         given(authService.emailExists(signUpRequest)).willReturn(false);
         given(authService.phoneNumberExists(signUpRequest)).willReturn(false);
 
-        given(authService.registerPatient(signUpRequest)).willReturn(new Tuple<>(savedUser, savedPatient));
-        given(userMapper.userToSignUpPatientResponseDTO(savedUser)).willReturn(expectedResponse);
+        given(authService.registerPatient(signUpRequest)).willReturn(expectedResponse);
 
         mockMvc.perform(post(TestConstants.SIGN_UP_PATIENT_URL)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -147,7 +142,6 @@ class AuthControllerTest {
 
         verify(authService).usernameExists(signUpRequest);
         verify(authService).registerPatient(signUpRequest);
-        verify(userMapper).userToSignUpPatientResponseDTO(savedUser);
     }
 
     @Test
@@ -164,15 +158,6 @@ class AuthControllerTest {
                 .specialty("Cardiology")
                 .build();
 
-        User savedUser = User.builder()
-                .username(signUpRequest.getUsername())
-                .build();
-
-        Doctor savedDoctor = Doctor.builder()
-                .licenseNumber(signUpRequest.getLicenseNumber())
-                .specialty(signUpRequest.getSpecialty())
-                .build();
-
         SignUpDoctorResponseDTO expectedResponse = SignUpDoctorResponseDTO.builder()
                 .username(signUpRequest.getUsername())
                 .email(signUpRequest.getEmail())
@@ -187,8 +172,7 @@ class AuthControllerTest {
         given(authService.emailExists(signUpRequest)).willReturn(false);
         given(authService.phoneNumberExists(signUpRequest)).willReturn(false);
 
-        given(authService.registerDoctor(signUpRequest)).willReturn(new Tuple<>(savedUser, savedDoctor));
-        given(userMapper.userToSignUpDoctorResponseDTO(savedUser)).willReturn(expectedResponse);
+        given(authService.registerDoctor(signUpRequest)).willReturn(expectedResponse);
 
         mockMvc.perform(post(TestConstants.SIGN_UP_DOCTOR_URL)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -198,7 +182,6 @@ class AuthControllerTest {
 
         verify(authService).usernameExists(signUpRequest);
         verify(authService).registerDoctor(signUpRequest);
-        verify(userMapper).userToSignUpDoctorResponseDTO(savedUser);
     }
 
     @Test

@@ -3,8 +3,8 @@ package com.cmasproject.cmastestserver.controller.test;
 import com.cmasproject.cmastestserver.constants.ApplicationConstants;
 import com.cmasproject.cmastestserver.constants.TestConstants;
 import com.cmasproject.cmastestserver.model.CreateTestRequestDTO;
-import com.cmasproject.cmastestserver.model.registration.LogInRequestDTO;
-import com.cmasproject.cmastestserver.model.registration.SignUpPatientRequestDTO;
+import com.cmasproject.cmastestserver.model.LogInRequestDTO;
+import com.cmasproject.cmastestserver.model.SignUpRequestDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,11 +27,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
 
 @SpringBootTest
 @Testcontainers
 @AutoConfigureMockMvc
 @ActiveProfiles("functional-testing")
+@WithMockUser(roles = "ADMIN")
 public class TestCreationControllerIT {
 
     @Container
@@ -44,33 +47,34 @@ public class TestCreationControllerIT {
     @Autowired
     MockMvc mockMvc;
 
+    @Autowired
+    AuthService authService;
+
+    @Autowired
+    DoctorService doctorService;
+
     private String doctorToken;
-    private String patientUsername;
+    private String doctorUsername;
+    private UUID patientId;
+    private String patientFirstName;
+    private String patientLastName;
 
     @BeforeEach
     @Rollback
     @Transactional
     public void setUp() throws Exception {
-        // Create a doctor user
-        SignUpPatientRequestDTO doctorUser = SignUpPatientRequestDTO.builder()
-                .username("doctoruser")
+        SignUpDoctorRequestDTO doctorUser = SignUpDoctorRequestDTO.builder()
+                .username("testdoctor")
                 .email("doctor@example.com")
                 .password("password123")
                 .firstName("Doctor")
-                .lastName("User")
-                .phoneNumber("+1234567890")
-                .dateOfBirth(LocalDate.parse("1980-01-01"))
+                .lastName("Test")
+                .phoneNumber("+1231231234")
+                .licenseNumber("123456")
+                .specialty("Cardiology")
                 .build();
 
-        mockMvc.perform(post(TestConstants.SIGN_UP_PATIENT_URL)
-                        .with(request -> {
-                            request.setScheme("https");
-                            return request;
-                        })
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(doctorUser)))
-                .andExpect(status().isCreated());
-
+        authService.registerDoctor(doctorUser);
 
         SignUpPatientRequestDTO patientUser = SignUpPatientRequestDTO.builder()
                 .username("patientuser")
@@ -82,21 +86,21 @@ public class TestCreationControllerIT {
                 .dateOfBirth(LocalDate.parse("1990-01-01"))
                 .build();
 
-        mockMvc.perform(post(TestConstants.SIGN_UP_PATIENT_URL)
-                        .with(request -> {
-                            request.setScheme("https");
-                            return request;
-                        })
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(patientUser)))
-                .andExpect(status().isCreated());
+        authService.registerPatient(patientUser);
 
-        patientUsername = patientUser.getUsername();
+        List<UUID> patientIds = doctorService.getAllPatients().stream()
+                .map(PatientResponseDTO::getPatientId)
+                .toList();
 
-        // Login as doctor to get token
+        patientId = doctorService.assignPatients(patientIds, doctorUser.getUsername()).get(0).getPatientId();
+        patientFirstName = patientUser.getFirstName();
+        patientLastName = patientUser.getLastName();
+
+        doctorUsername = doctorUser.getUsername();
+
         LogInRequestDTO loginRequest = LogInRequestDTO.builder()
-                .username("doctoruser")
-                .password("password123")
+                .username(doctorUsername)
+                .password(doctorUser.getPassword())
                 .build();
 
         MvcResult result = mockMvc.perform(post(TestConstants.LOG_IN_URL)
@@ -117,8 +121,9 @@ public class TestCreationControllerIT {
     @Rollback
     @Transactional
     public void testSuccessfulTestCreation() throws Exception {
+
         CreateTestRequestDTO createTestRequest = CreateTestRequestDTO.builder()
-                .patientUsername(patientUsername)
+                .patientId(patientId)
                 .build();
 
         mockMvc.perform(post(TestConstants.CREATE_TEST_RECORD_URL)
@@ -131,16 +136,17 @@ public class TestCreationControllerIT {
                         .content(objectMapper.writeValueAsString(createTestRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.message", is("Test created successfully.")))
-                .andExpect(jsonPath("$.authorUsername", is("doctoruser")))
-                .andExpect(jsonPath("$.patientUsername", is(patientUsername)));
+                .andExpect(jsonPath("$.authorUsername", is(doctorUsername)))
+                .andExpect(jsonPath("$.patientFirstName", is(patientFirstName)))
+                .andExpect(jsonPath("$.patientLastName", is(patientLastName)));
     }
 
     @Test
     @Rollback
     @Transactional
-    public void testInvalidTestCreation_NonExistentPatient() throws Exception {
+    public void testInvalidTestCreationWithNonExistentPatient() throws Exception {
         CreateTestRequestDTO createTestRequest = CreateTestRequestDTO.builder()
-                .patientUsername("nonexistentpatient")
+                .patientId(UUID.randomUUID())
                 .build();
 
         mockMvc.perform(post(TestConstants.CREATE_TEST_RECORD_URL)
@@ -158,9 +164,9 @@ public class TestCreationControllerIT {
     @Test
     @Rollback
     @Transactional
-    public void testInvalidTestCreation_EmptyPatientUsername() throws Exception {
+    public void testInvalidTestCreationWithEmptyPatientId() throws Exception {
         CreateTestRequestDTO createTestRequest = CreateTestRequestDTO.builder()
-                .patientUsername("")
+                .patientId(null)
                 .build();
 
         mockMvc.perform(post(TestConstants.CREATE_TEST_RECORD_URL)
@@ -172,7 +178,7 @@ public class TestCreationControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createTestRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$[*].patientUsername").exists());
+                .andExpect(jsonPath("$[*].patientId").exists());
     }
 
     @Test
@@ -180,7 +186,7 @@ public class TestCreationControllerIT {
     @Transactional
     public void testUnauthorizedTestCreation() throws Exception {
         CreateTestRequestDTO createTestRequest = CreateTestRequestDTO.builder()
-                .patientUsername(patientUsername)
+                .patientId(patientId)
                 .build();
 
         mockMvc.perform(post(TestConstants.CREATE_TEST_RECORD_URL)
@@ -190,6 +196,6 @@ public class TestCreationControllerIT {
                         })
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createTestRequest)))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 }
