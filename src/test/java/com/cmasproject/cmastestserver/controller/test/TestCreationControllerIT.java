@@ -36,7 +36,7 @@ import java.util.UUID;
 @SpringBootTest
 @Testcontainers
 @AutoConfigureMockMvc
-@ActiveProfiles("functional-testing")
+@ActiveProfiles("integration-testing")
 @WithMockUser(roles = "ADMIN")
 public class TestCreationControllerIT {
 
