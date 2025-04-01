@@ -60,6 +60,7 @@ jobs:
           app-name: 'cmas-test-server'
           slot-name: 'Production'
           package: '*.jar'
+          startup-command: "java -jar --spring.profiles.active=deployment *.jar"
           retries: 3
           delay-between-attempts: 60s
           app-settings-json: |
