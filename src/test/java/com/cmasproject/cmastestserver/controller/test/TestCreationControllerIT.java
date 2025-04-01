@@ -39,7 +39,6 @@ import java.util.UUID;
 @AutoConfigureMockMvc
 @ActiveProfiles("integration-testing")
 @WithMockUser(roles = "ADMIN")
-@Disabled
 public class TestCreationControllerIT {
 
     @Container

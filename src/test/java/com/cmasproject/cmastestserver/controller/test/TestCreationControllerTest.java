@@ -30,7 +30,6 @@ import static org.mockito.BDDMockito.given;
 
 @WebMvcTest(TestCreationController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Disabled
 class TestCreationControllerTest {
     @Autowired
     private MockMvc mockMvc;

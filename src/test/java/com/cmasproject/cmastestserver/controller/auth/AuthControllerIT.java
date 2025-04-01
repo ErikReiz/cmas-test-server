@@ -30,7 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @AutoConfigureMockMvc
 @ActiveProfiles("integration-testing")
-@Disabled
 public class AuthControllerIT {
     @Container
     @ServiceConnection
