@@ -1,0 +1,49 @@
+name: Deploy to Azure Web App
+
+on:
+  push:
+    branches:
+      - deploy
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: cmas-deploy-secrets
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: '21'
+          distribution: 'adopt'
+
+      - name: Build with Maven
+        run: mvn clean package
+
+      - name: Wait to Avoid SCM Conflicts
+        run: sleep 30s
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'cmas-test-server'
+          package: './target/cmas-test-server-0.0.1-SNAPSHOT.jar'
+          retries: 3  # Retry up to 3 times
+          delay-between-attempts: 60s
+          app-settings-json: |
+            [
+              { "name": "SPRING_PROFILES_ACTIVE", "value": "deployment" },
+              { "name": "DB_HOST", "value": "cmas-test-server-server.mysql.database.azure.com" },
+              { "name": "DB_PORT", "value": "3306" },
+              { "name": "DB_NAME", "value": "cmas-db" },
+              { "name": "DB_USERNAME", "value": "${{ secrets.DB_USERNAME }}" },
+              { "name": "DB_PASSWORD", "value": "${{ secrets.DB_PASSWORD }}" },
+              { "name": "JWT_SECRET", "value": "${{ secrets.JWT_SECRET }}" }
+            ]
