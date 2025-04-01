@@ -63,7 +63,7 @@ jobs:
           startup-command: "java -jar --spring.profiles.active=deployment *.jar"
           retries: 3
           delay-between-attempts: 60s
-          app-settings-json: |
+          app-settings: |
             [
               { "name": "SPRING_PROFILES_ACTIVE", "value": "deployment" },
               { "name": "DB_HOST", "value": "cmas-test-server-server.mysql.database.azure.com" },
