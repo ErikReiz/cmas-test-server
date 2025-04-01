@@ -60,16 +60,5 @@ jobs:
           app-name: 'cmas-test-server'
           slot-name: 'Production'
           package: '*.jar'
-          startup-command: "java -jar --spring.profiles.active=deployment *.jar"
           retries: 3
           delay-between-attempts: 60s
-          app-settings: |
-            [
-              { "name": "SPRING_PROFILES_ACTIVE", "value": "deployment" },
-              { "name": "DB_HOST", "value": "cmas-test-server-server.mysql.database.azure.com" },
-              { "name": "DB_PORT", "value": "3306" },
-              { "name": "DB_NAME", "value": "cmas-db" },
-              { "name": "DB_USERNAME", "value": "${{ secrets.DB_USERNAME }}" },
-              { "name": "DB_PASSWORD", "value": "${{ secrets.DB_PASSWORD }}" },
-              { "name": "JWT_SECRET", "value": "${{ secrets.JWT_SECRET }}" }
-            ]
