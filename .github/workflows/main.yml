@@ -37,14 +37,11 @@ jobs:
           package: './target/cmas-test-server-0.0.1-SNAPSHOT.jar'
           retries: 3  # Retry up to 3 times
           delay-between-attempts: 60s
-          app-settings-json: |
-            [
-              { "name": "DB_HOST", "value": "cmas-test-server-server.mysql.database.azure.com" },
-              { "name": "DB_PORT", "value": "3306" },
-              { "name": "DB_NAME", "value": "cmas-db" },
-              { "name": "DB_USERNAME", "value": "${{ secrets.DB_USERNAME }}" },
-              { "name": "DB_PASSWORD", "value": "${{ secrets.DB_PASSWORD }}" },
-              { "name": "JWT_SECRET", "value": "${{ secrets.JWT_SECRET }}" }
-            ]
           app-settings: |
             SPRING_PROFILES_ACTIVE=deployment
+            DB_HOST=cmas-test-server-server.mysql.database.azure.com
+            DB_PORT=3306
+            DB_NAME=cmas-db
+            DB_USERNAME=${{ secrets.DB_USERNAME }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
