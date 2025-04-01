@@ -24,22 +24,12 @@ jobs:
       - name: Build with Maven
         run: mvn clean package
 
-      - name: Wait to Avoid SCM Conflicts
-        run: sleep 30s
-
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_C8F5235A165F42E09C9B2CBE72A68C5C }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_1F6D89372EE040A09D46B3FB0D8D12F4 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_1AE53B0F5B0F459F933006A9344E875B }}
-
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
           app-name: 'cmas-test-server'
           package: './target/cmas-test-server-0.0.1-SNAPSHOT.jar'
-          retries: 3  # Retry up to 3 times
+          retries: 3
           delay-between-attempts: 60s
           app-settings-json: |
             [
@@ -79,5 +69,5 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'cmas-test-server'
-          slot-name: 'Production'
+          slot-name: 'development'
           package: '*.jar'
