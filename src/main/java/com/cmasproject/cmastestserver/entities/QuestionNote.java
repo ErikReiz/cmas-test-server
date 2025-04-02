@@ -15,11 +15,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "question_notes", uniqueConstraints = @UniqueConstraint(columnNames = {"test_assignment_id", "question_id"}))
+@Table(name = "question_notes", uniqueConstraints = @UniqueConstraint(columnNames = {"test_id", "question_id"}))
 public class QuestionNote {
     @Id
     @UuidGenerator
-    @Column(length = 36, columnDefinition = "varchar(36)", updatable = false, nullable = false)
+    @Column(name = "question_note_id", length = 36, columnDefinition = "varchar(36)", updatable = false, nullable = false)
     @JdbcTypeCode(Types.VARCHAR)
     private UUID id;
 

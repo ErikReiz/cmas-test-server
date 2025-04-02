@@ -21,8 +21,8 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import com.cmasproject.cmastestserver.security.JWTTokenValidatorFilter;
 
 @Configuration
-@Profile("functional-testing")
-public class FunctionalTestingSecurityConfig {
+@Profile("deployment")
+public class DevSecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
