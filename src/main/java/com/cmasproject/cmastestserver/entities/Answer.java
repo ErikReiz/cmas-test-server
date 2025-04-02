@@ -15,11 +15,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "answers", uniqueConstraints = @UniqueConstraint(columnNames = {"test_assignment_id", "question_id"}))
+@Table(name = "answers", uniqueConstraints = @UniqueConstraint(columnNames = {"test_id", "question_id"}))
 public class Answer {
     @Id
     @UuidGenerator
-    @Column(length = 36, columnDefinition = "varchar(36)", updatable = false, nullable = false)
+    @Column(name="answer_id", length = 36, columnDefinition = "varchar(36)", updatable = false, nullable = false)
     @JdbcTypeCode(Types.VARCHAR)
     private UUID id;
 
@@ -27,8 +27,8 @@ public class Answer {
     private Integer version;
 
     @ManyToOne
-    @JoinColumn(name = "test_assignment_id", nullable = false)
-    private TestRecord testAssignment;
+    @JoinColumn(name = "test_id", nullable = false)
+    private TestRecord testRecord;
 
     @ManyToOne
     @JoinColumn(name = "question_id", nullable = false)

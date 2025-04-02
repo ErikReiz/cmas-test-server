@@ -21,7 +21,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 @Configuration
-@Profile("!functional-testing")
+@Profile("!deployment")
 public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -33,7 +33,7 @@ public class SecurityConfig {
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                .requiresChannel(rcc -> rcc.anyRequest().requiresInsecure())
+                .requiresChannel(rcc -> rcc.anyRequest().requiresSecure())
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint())
                         .accessDeniedHandler(new CustomAccessDeniedHandler()))
@@ -42,8 +42,9 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()))
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/api/auth/signup").permitAll()
+                        .requestMatchers("/api/auth/signup/patient").permitAll()
                         .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/signup/doctor").hasRole(Role.ADMIN.name())
                         .requestMatchers("/api/doctor/**").hasRole(Role.DOCTOR.name())
                         .requestMatchers("/api/patient/**").hasRole(Role.PATIENT.name())
                         .requestMatchers("/api/test/**").hasRole(Role.PATIENT.name())
