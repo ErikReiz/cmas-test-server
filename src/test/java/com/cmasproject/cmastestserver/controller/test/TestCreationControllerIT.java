@@ -162,7 +162,7 @@ public class TestCreationControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createTestRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", is("Could not find Patient for ID:" + createTestRequest.getPatientId())));
+                .andExpect(jsonPath("$.message", is("Could not find Patient for ID:" + createTestRequest.getPatientId())));
     }
 
     @Test

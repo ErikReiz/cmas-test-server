@@ -203,8 +203,8 @@ public class AuthControllerIT {
                         })
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", is("User not found with username: user")));
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message", is("User not found with username: user")));
     }
 
     @Rollback
