@@ -1,9 +1,10 @@
 package com.cmasproject.cmastestserver.controller.doctor;
 
+import com.cmasproject.cmastestserver.model.test.doctor.CreateTestNotesResponseDTO;
 import com.cmasproject.cmastestserver.model.test.doctor.CreateTestRequestDTO;
 import com.cmasproject.cmastestserver.model.test.doctor.CreateTestResponseDTO;
 import com.cmasproject.cmastestserver.model.PatientResponseDTO;
-import com.cmasproject.cmastestserver.model.test.doctor.TestNotesRequestDTO;
+import com.cmasproject.cmastestserver.model.test.doctor.CreateTestNotesRequestDTO;
 import com.cmasproject.cmastestserver.services.TestService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
@@ -34,22 +35,18 @@ public class TestCreationController {
 
         CreateTestResponseDTO response = testService.createTest(doctorUsername, request.getPatientId());
 
-
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-//    @PostMapping("/createNotes")
-//    public ResponseEntity<?> createNotesForTest(@Validated @RequestBody TestNotesRequestDTO request, Authentication authentication) {
-//        if(!testService.isPatientExists(request.getPatientId()))
-//            throw new TestCreationException("Patient does not exist.");
-//
-//        String doctorUsername = authentication.getName();
-//
-//        CreateTestResponseDTO response = testService.createTest(doctorUsername, request.getPatientId());
-//
-//
-//        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-//    }
+    @PostMapping("/createNotes")
+    public ResponseEntity<?> saveTestNotes(@Validated @RequestBody CreateTestNotesRequestDTO request) {
+        if(!testService.isTestExists(request.getTestId()))
+            throw new EntityNotFoundException("Could not find Test entity for ID:" + request.getTestId());
+
+        CreateTestNotesResponseDTO response = testService.saveTestNotes(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
     @GetMapping("/patients")
     public ResponseEntity<?> getPatients(Authentication authentication) {

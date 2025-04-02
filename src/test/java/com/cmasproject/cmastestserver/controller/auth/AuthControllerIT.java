@@ -146,7 +146,7 @@ public class AuthControllerIT {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.username", is("Username already exists.")))
                 .andExpect(jsonPath("$.email", is("Email already exists.")))
-                .andExpect(jsonPath("$['phone number']", is("Phone number already exists.")));
+                .andExpect(jsonPath("$.phoneNumber", is("Phone number already exists.")));
     }
 
     @Rollback
