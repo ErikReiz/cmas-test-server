@@ -28,7 +28,7 @@ public class QuestionNote {
 
     @ManyToOne
     @JoinColumn(name = "test_id", nullable = false)
-    private TestRecord testAssignment;
+    private TestRecord testRecord;
 
     @ManyToOne
     @JoinColumn(name = "question_id", nullable = false)

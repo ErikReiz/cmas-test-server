@@ -1,0 +1,2 @@
+ALTER TABLE questions
+    ADD COLUMN question_number INTEGER NOT NULL DEFAULT 0;

@@ -92,7 +92,7 @@ class AuthControllerTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.username", is("Username already exists.")))
                 .andExpect(jsonPath("$.email", is("Email already exists.")))
-                .andExpect(jsonPath("$['phone number']", is("Phone number already exists.")));
+                .andExpect(jsonPath("$.phoneNumber", is("Phone number already exists.")));
 
         verify(authService).usernameExists(signUpRequest);
         verify(authService, never()).registerPatient(signUpRequest);
@@ -201,7 +201,7 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().string("Invalid credentials."));
+                .andExpect(jsonPath("$.error", is("Invalid password.")));
 
         verify(authService).authenticateUser(loginRequest);
         verify(mockAuth).isAuthenticated();

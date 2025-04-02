@@ -3,7 +3,9 @@ package com.cmasproject.cmastestserver.config;
 import com.cmasproject.cmastestserver.entities.enums.Role;
 import com.cmasproject.cmastestserver.exceptions.CustomAccessDeniedHandler;
 import com.cmasproject.cmastestserver.exceptions.CustomBasicAuthenticationEntryPoint;
+import com.cmasproject.cmastestserver.helpers.TimeTranslator;
 import com.cmasproject.cmastestserver.security.UsernamePasswordAuthenticationProvider;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -19,6 +21,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import com.cmasproject.cmastestserver.security.JWTTokenValidatorFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+
+import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 @Configuration
 @Profile("deployment")
@@ -33,6 +40,18 @@ public class DevSecurityConfig {
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
 
         http
+                .cors(corsConfig -> corsConfig.configurationSource(new CorsConfigurationSource() {
+                    @Override
+                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                        CorsConfiguration config = new CorsConfiguration();
+                        config.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
+                        config.setAllowedMethods(Collections.singletonList("*"));
+                        config.setAllowCredentials(true);
+                        config.setAllowedHeaders(Collections.singletonList("*"));
+                        config.setMaxAge(TimeTranslator.hoursToMilliseconds(24L));
+                        return config;
+                    }
+                }))
                 .requiresChannel(rcc -> rcc.anyRequest().requiresSecure())
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint())

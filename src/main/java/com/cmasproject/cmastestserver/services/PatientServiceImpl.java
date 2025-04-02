@@ -3,6 +3,7 @@ package com.cmasproject.cmastestserver.services;
 import com.cmasproject.cmastestserver.entities.*;
 import com.cmasproject.cmastestserver.model.test.patient.AssignedTestResponseDTO;
 import com.cmasproject.cmastestserver.model.test.patient.QuestionAnswerRequestDTO;
+import com.cmasproject.cmastestserver.model.test.patient.QuestionNotesResponseDTO;
 import com.cmasproject.cmastestserver.model.test.patient.TestResultsRequestDTO;
 import com.cmasproject.cmastestserver.repository.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -25,12 +26,13 @@ public class PatientServiceImpl implements PatientService {
     private final PatientRepository patientRepository;
     private final AnswerRepository answerRepository;
     private final QuestionRepository questionRepository;
+    private final QuestionNoteRepository questionNoteRepository;
 
 
     @Override
-    public Boolean isTestExists(TestResultsRequestDTO testResults)
+    public Boolean isTestExists(UUID testId)
     {
-        return testRecordRepository.existsById(testResults.getTestId());
+        return testRecordRepository.existsById(testId);
     }
 
     @Override
@@ -75,6 +77,26 @@ public class PatientServiceImpl implements PatientService {
         testAssignment.setCompletedDate(LocalDateTime.now());
         testAssignment.setTotalCmasScore(totalScore.get());
         testRecordRepository.save(testAssignment);
+    }
+
+    @Override
+    public QuestionNotesResponseDTO loadTestData(UUID testId)
+    {
+        if(testRecordRepository.existsById(testId))
+            throw new EntityNotFoundException("Could not find Test entity for ID: " + testId);
+
+        TestRecord testRecord = testRecordRepository.getTestRecordById(testId);
+        Map<Integer, String> questionOrderToNotesMap = questionNoteRepository.getQuestionNotesByTestRecord(testRecord).stream()
+                .collect(Collectors.toMap(
+                        questionNote -> questionNote.getQuestion().getQuestionNumber(),
+                        QuestionNote::getNote
+                ));
+
+        return QuestionNotesResponseDTO.builder()
+                .message("Test data loaded successfully.")
+                .testId(testRecord.getId())
+                .questionOrderToNotesMap(questionOrderToNotesMap)
+                .build();
     }
 
     @Override
