@@ -44,4 +44,12 @@ public class DoctorServiceImpl implements DoctorService, PatientMapper {
                 .map(this::mapToPatientResponseDTO)
                 .collect(Collectors.toList());
     }
+
+    public Set<PatientResponseDTO> getAssignedPatients(String doctorUsername)
+    {
+        User user = userRepository.getUserByUsername(doctorUsername);
+        return patientRepository.getPatientsByDoctors(Set.of(doctorRepository.findDoctorByUser(user)))
+                .stream().map(this::mapToPatientResponseDTO)
+                .collect(Collectors.toSet());
+    }
 }

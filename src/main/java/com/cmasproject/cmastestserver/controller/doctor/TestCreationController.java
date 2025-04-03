@@ -1,10 +1,7 @@
 package com.cmasproject.cmastestserver.controller.doctor;
 
-import com.cmasproject.cmastestserver.model.test.doctor.CreateTestNotesResponseDTO;
-import com.cmasproject.cmastestserver.model.test.doctor.CreateTestRequestDTO;
-import com.cmasproject.cmastestserver.model.test.doctor.CreateTestResponseDTO;
+import com.cmasproject.cmastestserver.model.test.doctor.*;
 import com.cmasproject.cmastestserver.model.PatientResponseDTO;
-import com.cmasproject.cmastestserver.model.test.doctor.CreateTestNotesRequestDTO;
 import com.cmasproject.cmastestserver.services.TestService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
@@ -16,7 +13,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -48,11 +47,13 @@ public class TestCreationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/patients")
-    public ResponseEntity<?> getPatients(Authentication authentication) {
-        String doctorUsername = authentication.getName();
+    @GetMapping("/results/{patientId}")
+    public ResponseEntity<?> getTestResults(@PathVariable UUID patientId)
+    {
+        if(!testService.isPatientExists(patientId))
+            throw new EntityNotFoundException("Could not find Patient for ID:" + patientId);
 
-        Set<PatientResponseDTO> response = testService.getPatients(doctorUsername);
+        List<TestResultResponseDTO> response = testService.loadTestResults(patientId);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

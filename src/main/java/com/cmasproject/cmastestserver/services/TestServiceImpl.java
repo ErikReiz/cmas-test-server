@@ -7,6 +7,7 @@ import com.cmasproject.cmastestserver.model.test.doctor.CreateTestNotesResponseD
 import com.cmasproject.cmastestserver.model.test.doctor.CreateTestResponseDTO;
 import com.cmasproject.cmastestserver.model.PatientResponseDTO;
 import com.cmasproject.cmastestserver.model.test.doctor.CreateTestNotesRequestDTO;
+import com.cmasproject.cmastestserver.model.test.doctor.TestResultResponseDTO;
 import com.cmasproject.cmastestserver.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -94,6 +95,19 @@ public class TestServiceImpl implements TestService, PatientMapper {
                 .build();
     }
 
+    @Override
+    public List<TestResultResponseDTO> loadTestResults(UUID patientId)
+    {
+        Patient patient = patientRepository.getPatientById(patientId);
+
+        return testRecordRepository.getTestRecordsByPatient(patient).stream()
+                 .map(testRecord -> TestResultResponseDTO.builder()
+                         .testId(testRecord.getId())
+                         .totalCmasScore(testRecord.getTotalCmasScore())
+                         .completedDate(testRecord.getCompletedDate())
+                         .build()).collect(Collectors.toList());
+    }
+
     private static List<Question> saveQuestions(int numberOfQuestions, TestRecord savedTest)
     {
         List<Question> questions = IntStream.range(0, numberOfQuestions)
@@ -115,13 +129,5 @@ public class TestServiceImpl implements TestService, PatientMapper {
 
         TestRecord savedTest = testRecordRepository.save(test);
         return savedTest;
-    }
-
-    public Set<PatientResponseDTO> getPatients(String doctorUsername)
-    {
-        User user = userRepository.getUserByUsername(doctorUsername);
-        return patientRepository.getPatientsByDoctors(Set.of(doctorRepository.findDoctorByUser(user)))
-                .stream().map(this::mapToPatientResponseDTO)
-                .collect(Collectors.toSet());
     }
 }

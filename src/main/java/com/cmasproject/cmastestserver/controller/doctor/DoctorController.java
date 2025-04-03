@@ -26,7 +26,6 @@ import java.util.UUID;
 public class DoctorController {
     private final DoctorService doctorService;
 
-
     @GetMapping("/patients")
     public ResponseEntity<?> getPatients() {
         List<PatientResponseDTO> response = doctorService.getAllPatients();
@@ -43,6 +42,15 @@ public class DoctorController {
                 .message("Patients assigned successfully.")
                 .assignedPatients(patientListResponse)
                 .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/assignedPatients")
+    public ResponseEntity<?> getAssignedPatients(Authentication authentication) {
+        String doctorUsername = authentication.getName();
+
+        Set<PatientResponseDTO> response = doctorService.getAssignedPatients(doctorUsername);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

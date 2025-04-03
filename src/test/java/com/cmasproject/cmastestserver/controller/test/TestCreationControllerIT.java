@@ -38,7 +38,6 @@ import java.util.UUID;
 @Testcontainers
 @AutoConfigureMockMvc
 @ActiveProfiles("integration-testing")
-@WithMockUser(roles = "ADMIN")
 public class TestCreationControllerIT {
 
     @Container
@@ -200,6 +199,6 @@ public class TestCreationControllerIT {
                         })
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createTestRequest)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }
