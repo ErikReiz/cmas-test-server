@@ -30,7 +30,7 @@ public class CustomErrorController {
         try {
             jsonResponse = objectMapper.writeValueAsString(exception.getErrors());
         } catch (Exception ex) {
-            jsonResponse = "{\"error\":\"Could not process error message\"}";
+            jsonResponse = "{\"message\":\"Could not process error message\"}";
         }
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -42,14 +42,14 @@ public class CustomErrorController {
     public ResponseEntity<String> handleBadCredentialsException(BadCredentialsException exception) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body("{\"error\":\"" + exception.getMessage() + "\"}");
+                .body("{\"message\":\"" + exception.getMessage() + "\"}");
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<String> handleEntityNotFoundError(EntityNotFoundException exception) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body("{\"error\":\"" + exception.getMessage() + "\"}");
+                .body("{\"message\":\"" + exception.getMessage() + "\"}");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

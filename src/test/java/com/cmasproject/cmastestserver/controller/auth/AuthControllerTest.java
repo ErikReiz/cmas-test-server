@@ -201,7 +201,7 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error", is("Invalid password.")));
+                .andExpect(jsonPath("$.message", is("Invalid password.")));
 
         verify(authService).authenticateUser(loginRequest);
         verify(mockAuth).isAuthenticated();

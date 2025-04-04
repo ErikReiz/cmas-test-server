@@ -10,6 +10,7 @@ import com.cmasproject.cmastestserver.services.DoctorService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -37,7 +38,6 @@ import java.util.UUID;
 @Testcontainers
 @AutoConfigureMockMvc
 @ActiveProfiles("integration-testing")
-@WithMockUser(roles = "ADMIN")
 public class TestCreationControllerIT {
 
     @Container
@@ -161,7 +161,7 @@ public class TestCreationControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createTestRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", is("Could not find Patient for ID:" + createTestRequest.getPatientId())));
+                .andExpect(jsonPath("$.message", is("Could not find Patient for ID:" + createTestRequest.getPatientId())));
     }
 
     @Test
@@ -199,6 +199,6 @@ public class TestCreationControllerIT {
                         })
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createTestRequest)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }

@@ -10,4 +10,5 @@ import java.util.UUID;
 public interface DoctorService {
     List<PatientResponseDTO> getAllPatients();
     List<PatientResponseDTO> assignPatients(List<UUID> patientIds, String doctorUsername);
+    Set<PatientResponseDTO> getAssignedPatients(String doctorUsername);
 }
