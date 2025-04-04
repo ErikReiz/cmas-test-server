@@ -112,6 +112,7 @@ public class PatientServiceImpl implements PatientService {
                             .doctorFirstName(doctorUser.getFirstName())
                             .doctorLastName(doctorUser.getLastName())
                             .assignedDate(testRecord.getAssignedDate())
+                            .testStatus(testRecord.getStatus())
                             .build();
 
                     return assignedTest;
