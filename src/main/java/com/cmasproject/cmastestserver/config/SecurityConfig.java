@@ -39,7 +39,7 @@ public class SecurityConfig {
 
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .requiresChannel(rcc -> rcc.anyRequest().requiresInsecure())
+                .requiresChannel(rcc -> rcc.anyRequest().requiresSecure())
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint())
                         .accessDeniedHandler(new CustomAccessDeniedHandler()))
