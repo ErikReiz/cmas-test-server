@@ -43,8 +43,7 @@ public class DevSecurityConfig {
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                //.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .requiresChannel(rcc -> rcc.anyRequest().requiresInsecure())
+                .requiresChannel(rcc -> rcc.anyRequest().requiresSecure())
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint())
                         .accessDeniedHandler(new CustomAccessDeniedHandler()))
@@ -76,17 +75,4 @@ public class DevSecurityConfig {
         return providerManager;
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:63343"));
-        configuration.setAllowedMethods(Collections.singletonList("*"));
-        configuration.setAllowedHeaders(Collections.singletonList("*"));
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
 }
