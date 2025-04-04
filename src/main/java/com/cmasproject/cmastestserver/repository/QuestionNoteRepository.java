@@ -8,7 +8,5 @@ import java.util.List;
 import java.util.UUID;
 
 public interface QuestionNoteRepository extends JpaRepository<QuestionNote, UUID> {
-    List<QuestionNote> getQuestionNoteByTestRecord(TestRecord testRecord);
-
-    List<QuestionNote> getQuestionNotesByTestRecord(TestRecord testRecord);
+    List<QuestionNote> findQuestionNotesByTestRecord(TestRecord testRecord);
 }

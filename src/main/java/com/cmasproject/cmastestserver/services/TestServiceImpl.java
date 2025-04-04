@@ -9,6 +9,7 @@ import com.cmasproject.cmastestserver.model.PatientResponseDTO;
 import com.cmasproject.cmastestserver.model.test.doctor.CreateTestNotesRequestDTO;
 import com.cmasproject.cmastestserver.model.test.doctor.TestResultResponseDTO;
 import com.cmasproject.cmastestserver.repository.*;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -45,10 +46,13 @@ public class TestServiceImpl implements TestService, PatientMapper {
     {
         final int numberOfQuestions = 15;
 
-        User doctorUser = userRepository.getUserByUsername(doctorUsername);
-        Doctor doctor = doctorRepository.getDoctorByUser((doctorUser));
+        User doctorUser = userRepository.findByUsername(doctorUsername)
+                .orElseThrow(() -> new EntityNotFoundException("Could not find User entity for username: " + doctorUsername));
+        Doctor doctor = doctorRepository.findDoctorByUser(doctorUser)
+                .orElseThrow(() -> new EntityNotFoundException("Could not find Doctor entity for username: " + doctorUsername));
 
-        Patient patient = patientRepository.getPatientById(patientId);
+        Patient patient = patientRepository.findPatientById(patientId)
+                .orElseThrow(() -> new EntityNotFoundException("Could not find Patient entity for ID: " + patientId));
 
         TestRecord savedTest = saveTestRecord(doctor, patient);
 
@@ -75,14 +79,20 @@ public class TestServiceImpl implements TestService, PatientMapper {
     @Override
     public CreateTestNotesResponseDTO saveTestNotes(CreateTestNotesRequestDTO request)
     {
-        TestRecord testRecord = testRecordRepository.getTestRecordById(request.getTestId());
+        TestRecord testRecord = testRecordRepository.findTestRecordById(request.getTestId())
+                .orElseThrow(() -> new EntityNotFoundException("Could not find Test entity for ID: " + request.getTestId()));
 
         Set<QuestionNote> questionNotes =request.getNotes().stream()
-                .map(note -> QuestionNote.builder()
-                        .testRecord(testRecord)
-                        .question(questionRepository.getQuestionsById((note.getQuestionId())))
-                        .note(note.getNote())
-                        .build())
+                .map(note ->  {
+                    Question question = questionRepository.findQuestionById(note.getQuestionId())
+                            .orElseThrow(() -> new EntityNotFoundException("Could not find Question entity for ID: " + note.getQuestionId()));
+
+                    return QuestionNote.builder()
+                            .testRecord(testRecord)
+                            .question(question)
+                            .note(note.getNote())
+                            .build();
+                })
                 .collect(Collectors.toSet());
 
         Set<UUID> savedNoteIds = questionNoteRepository.saveAll(questionNotes).stream()
@@ -130,4 +140,20 @@ public class TestServiceImpl implements TestService, PatientMapper {
         TestRecord savedTest = testRecordRepository.save(test);
         return savedTest;
     }
+<<<<<<< Updated upstream
+=======
+
+    public Set<PatientResponseDTO> getPatients(String doctorUsername)
+    {
+        User user = userRepository.findByUsername(doctorUsername)
+                .orElseThrow(() -> new EntityNotFoundException("Could not find User entity for username: " + doctorUsername));
+
+        Doctor doctor = doctorRepository.findDoctorByUser(user)
+                .orElseThrow(() -> new EntityNotFoundException("Could not find Doctor entity for username: " + doctorUsername));
+
+        return patientRepository.findPatientsByDoctors(Set.of(doctor))
+                .stream().map(this::mapToPatientResponseDTO)
+                .collect(Collectors.toSet());
+    }
+>>>>>>> Stashed changes
 }

@@ -7,13 +7,14 @@ import com.cmasproject.cmastestserver.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 public interface PatientRepository extends JpaRepository<Patient, UUID> {
-    Patient getPatientById(UUID patientId);
+    Optional<Patient> findPatientById(UUID patientId);
 
-    Set<Patient> getPatientsByDoctors(Set<Doctor> doctors);
+    Set<Patient> findPatientsByDoctors(Set<Doctor> doctors);
 
-    Patient getPatientByUser(User user);
+    Optional<Patient> findPatientByUser(User user);
 }

@@ -9,6 +9,7 @@ import com.cmasproject.cmastestserver.model.PatientResponseDTO;
 import com.cmasproject.cmastestserver.repository.DoctorRepository;
 import com.cmasproject.cmastestserver.repository.PatientRepository;
 import com.cmasproject.cmastestserver.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -36,8 +37,11 @@ public class DoctorServiceImpl implements DoctorService, PatientMapper {
     @Override
     public List<PatientResponseDTO> assignPatients(List<UUID> patientIds, String doctorUsername)
     {
-        User doctorUser = userRepository.getUserByUsername(doctorUsername);
-        Doctor doctor = doctorRepository.getDoctorByUser(doctorUser);
+        User doctorUser = userRepository.findByUsername(doctorUsername)
+                .orElseThrow(() -> new EntityNotFoundException("Could not find User entity for username: " + doctorUsername));
+        Doctor doctor = doctorRepository.findDoctorByUser(doctorUser)
+                .orElseThrow(() -> new EntityNotFoundException("Could not find Doctor entity for username: " + doctorUsername));
+
         List<Patient> patients = patientRepository.findAllById(patientIds);
         doctor.setPatients(new HashSet<>(patients));
         return doctorRepository.save(doctor).getPatients().stream()
