@@ -116,7 +116,7 @@ class PatientRepositoryTest {
 
     @Test
     public void testGetPatientById() {
-        Patient found = patientRepository.getPatientById(patient.getId());
+        Patient found = patientRepository.findPatientById(patient.getId()).orElse(null);
         assertThat(found).isNotNull();
         assertThat(found.getUser().getUsername()).isEqualTo("patientuser");
         assertThat(found.getDateOfBirth()).isEqualTo(LocalDate.of(1990, 1, 1));
@@ -124,7 +124,7 @@ class PatientRepositoryTest {
 
     @Test
     public void testGetPatientByUser() {
-        Patient found = patientRepository.getPatientByUser(patientUser);
+        Patient found = patientRepository.findPatientByUser(patientUser).orElse(null);
         assertThat(found).isNotNull();
         assertThat(found.getId()).isEqualTo(patient.getId());
     }
@@ -134,7 +134,7 @@ class PatientRepositoryTest {
         Set<Doctor> doctors = new HashSet<>();
         doctors.add(doctor);
 
-        Set<Patient> patients = patientRepository.getPatientsByDoctors(doctors);
+        Set<Patient> patients = patientRepository.findPatientsByDoctors(doctors);
         assertThat(patients).isNotEmpty();
         assertThat(patients).hasSize(1);
         assertThat(patients.iterator().next().getId()).isEqualTo(patient.getId());
@@ -142,7 +142,7 @@ class PatientRepositoryTest {
 
     @Test
     public void testGetPatientByNonExistentId() {
-        Patient found = patientRepository.getPatientById(UUID.randomUUID());
+        Patient found = patientRepository.findPatientById(UUID.randomUUID()).orElse(null);
         assertThat(found).isNull();
     }
 }

@@ -41,7 +41,7 @@ public class AuthController {
     @PostMapping("/signup/doctor")
     public ResponseEntity<?> registerDoctor(@Validated @RequestBody SignUpDoctorRequestDTO signUpRequest)
     {
-        performRegistrationChecks(signUpRequest);
+        performDoctorRegistrationChecks(signUpRequest);
 
         SignUpDoctorResponseDTO response = authService.registerDoctor(signUpRequest);
 
@@ -63,10 +63,26 @@ public class AuthController {
                 .build();
     }
 
+    private void performDoctorRegistrationChecks(SignUpDoctorRequestDTO signUpRequest)
+    {
+        Map<String, String> errorMap = new HashMap<>();
+
+        if(authService.licenseNumberExists(signUpRequest)) {
+            errorMap.put("licenseNumber", "License number already exists.");
+        }
+
+        performRegistrationChecks(signUpRequest, errorMap);
+    }
+
     private void performRegistrationChecks(SignUpRequestDTO signUpRequest)
     {
         Map<String, String> errorMap = new HashMap<>();
 
+        performRegistrationChecks(signUpRequest, errorMap);
+    }
+
+    private void performRegistrationChecks(SignUpRequestDTO signUpRequest, Map<String, String> errorMap)
+    {
         if(authService.usernameExists(signUpRequest)) {
             errorMap.put("username", "Username already exists.");
         }

@@ -130,4 +130,10 @@ public class AuthServiceImpl implements AuthService {
     {
         return userRepository.existsByPhoneNumber(request.getPhoneNumber());
     }
+
+    @Override
+    public Boolean licenseNumberExists(SignUpDoctorRequestDTO request)
+    {
+        return doctorRepository.existsByLicenseNumber(request.getLicenseNumber());
+    }
 }

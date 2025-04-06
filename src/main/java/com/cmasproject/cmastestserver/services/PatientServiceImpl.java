@@ -83,11 +83,9 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public QuestionNotesResponseDTO loadTestData(UUID testId)
     {
-        if(testRecordRepository.existsById(testId))
-            throw new EntityNotFoundException("Could not find Test entity for ID: " + testId);
-
         TestRecord testRecord = testRecordRepository.findTestRecordById(testId)
                 .orElseThrow(() -> new EntityNotFoundException("Could not find Test entity for ID: " + testId));
+
         Map<Integer, String> questionOrderToNotesMap = questionNoteRepository.findQuestionNotesByTestRecord(testRecord).stream()
                 .collect(Collectors.toMap(
                         questionNote -> questionNote.getQuestion().getQuestionNumber(),
@@ -104,10 +102,9 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public List<AssignedTestResponseDTO> getAssignedTests(String patientUsername)
     {
-        User patientUser = userRepository.findByUsername(patientUsername)
-                .orElseThrow(() -> new EntityNotFoundException("Could not find User entity for username: " + patientUsername));
-        Patient patient = patientRepository.findPatientByUser(patientUser)
+        Patient patient = patientRepository.findByUser_Username(patientUsername)
                 .orElseThrow(() -> new EntityNotFoundException("Could not find Patient entity for username: " + patientUsername));
+
         return testRecordRepository.findTestRecordsByPatient(patient).stream()
                 .map(testRecord -> {
                     User doctorUser = testRecord.getDoctor().getUser();

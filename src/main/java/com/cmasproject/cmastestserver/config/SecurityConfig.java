@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -38,22 +39,19 @@ public class SecurityConfig {
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .requiresChannel(rcc -> rcc.anyRequest().requiresSecure())
-                .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint())
-                        .accessDeniedHandler(new CustomAccessDeniedHandler()))
+                .httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()))
+                .exceptionHandling(ehc -> ehc.accessDeniedHandler(new CustomAccessDeniedHandler()))
                 .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()))
                 .authorizeHttpRequests((authorize) -> authorize
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/signup/patient").permitAll()
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/api/auth/signup/doctor").hasRole(Role.ADMIN.name())
                         .requestMatchers("/api/doctor/**").hasRole(Role.DOCTOR.name())
                         .requestMatchers("/api/patient/**").hasRole(Role.PATIENT.name())
-                        .requestMatchers("/api/test/**").hasRole(Role.PATIENT.name())
                         .anyRequest().authenticated())
                 .csrf(AbstractHttpConfigurer::disable);
 
@@ -68,21 +66,5 @@ public class SecurityConfig {
         providerManager.setEraseCredentialsAfterAuthentication(false);
 
         return providerManager;
-    }
-
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:63342"));
-        configuration.addExposedHeader("*");
-        configuration.setAllowedMethods(Collections.singletonList("*"));
-        configuration.setAllowedHeaders(Collections.singletonList("*"));
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
     }
 }

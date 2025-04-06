@@ -38,7 +38,7 @@ import java.util.UUID;
 @Testcontainers
 @AutoConfigureMockMvc
 @ActiveProfiles("integration-testing")
-public class TestCreationControllerIT {
+public class TestControllerIT {
 
     @Container
     @ServiceConnection
@@ -161,7 +161,7 @@ public class TestCreationControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createTestRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message", is("Could not find Patient for ID:" + createTestRequest.getPatientId())));
+                .andExpect(jsonPath("$.message", is("Could not find Patient entity for ID: " + createTestRequest.getPatientId())));
     }
 
     @Test
