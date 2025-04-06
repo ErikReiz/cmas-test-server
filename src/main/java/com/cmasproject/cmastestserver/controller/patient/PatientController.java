@@ -1,6 +1,7 @@
 package com.cmasproject.cmastestserver.controller.patient;
 
 import com.cmasproject.cmastestserver.model.test.patient.AssignedTestResponseDTO;
+import com.cmasproject.cmastestserver.model.test.patient.QuestionNotesResponseDTO;
 import com.cmasproject.cmastestserver.model.test.patient.TestResultsRequestDTO;
 import com.cmasproject.cmastestserver.services.PatientService;
 import jakarta.persistence.EntityExistsException;
@@ -13,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -30,12 +32,19 @@ public class PatientController {
         return ResponseEntity.ok().body(assignedTests);
     }
 
+    @GetMapping("/tests/{testId}")
+    private ResponseEntity<?> loadTestData(@PathVariable String testId)
+    {
+        UUID testUUID = UUID.fromString(testId);
+
+        QuestionNotesResponseDTO response = patientService.loadTestData(testUUID);
+
+        return ResponseEntity.ok().body(response);
+    }
+
     @PostMapping("/upload")
     private ResponseEntity<?> sendTestResults(@Validated @RequestBody TestResultsRequestDTO testResults)
     {
-        if(!patientService.isTestExists(testResults))
-            throw new EntityNotFoundException("Could not find Test entity for ID: " + testResults.getTestId());
-
         patientService.passTestResults(testResults);
         return ResponseEntity.ok("Test results uploaded successfully.");
     }

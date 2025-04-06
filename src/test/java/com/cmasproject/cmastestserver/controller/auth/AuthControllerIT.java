@@ -146,7 +146,7 @@ public class AuthControllerIT {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.username", is("Username already exists.")))
                 .andExpect(jsonPath("$.email", is("Email already exists.")))
-                .andExpect(jsonPath("$['phone number']", is("Phone number already exists.")));
+                .andExpect(jsonPath("$.phoneNumber", is("Phone number already exists.")));
     }
 
     @Rollback
@@ -203,8 +203,8 @@ public class AuthControllerIT {
                         })
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", is("User not found with username: user")));
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message", is("User not found with username: user")));
     }
 
     @Rollback

@@ -25,7 +25,10 @@ public class Question {
     @Version
     private Integer version;
 
+    @Column(name="question_number", updatable = false, nullable = false)
+    private Integer questionNumber;
+
     @ManyToOne
     @JoinColumn(name = "test_id", nullable = false)
-    private TestRecord test;
+    private TestRecord testRecord;
 }

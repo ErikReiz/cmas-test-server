@@ -5,6 +5,7 @@ import com.cmasproject.cmastestserver.entities.Doctor;
 import com.cmasproject.cmastestserver.entities.Patient;
 import com.cmasproject.cmastestserver.entities.User;
 import com.cmasproject.cmastestserver.entities.enums.Role;
+import com.cmasproject.cmastestserver.helpers.TimeTranslator;
 import com.cmasproject.cmastestserver.mapper.UserMapper;
 import com.cmasproject.cmastestserver.model.registration.*;
 import com.cmasproject.cmastestserver.repository.DoctorRepository;
@@ -107,7 +108,7 @@ public class AuthServiceImpl implements AuthService {
                 .claim("authorities", authentication.getAuthorities().stream().map(
                         GrantedAuthority::getAuthority).collect(Collectors.joining(",")))
                 .issuedAt(new Date())
-                .expiration(new Date((new Date()).getTime() + hoursToMilliseconds(expirationTimeHours)))
+                .expiration(new Date((new Date()).getTime() + TimeTranslator.hoursToMilliseconds(expirationTimeHours)))
                 .signWith(secretKey).compact();
     }
 
@@ -130,8 +131,9 @@ public class AuthServiceImpl implements AuthService {
         return userRepository.existsByPhoneNumber(request.getPhoneNumber());
     }
 
-    private int hoursToMilliseconds(int hours)
+    @Override
+    public Boolean licenseNumberExists(SignUpDoctorRequestDTO request)
     {
-        return hours * 60 * 60 * 1000;
+        return doctorRepository.existsByLicenseNumber(request.getLicenseNumber());
     }
 }

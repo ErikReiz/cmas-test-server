@@ -1,14 +1,14 @@
 package com.cmasproject.cmastestserver.controller.test;
 
 import com.cmasproject.cmastestserver.constants.TestConstants;
-import com.cmasproject.cmastestserver.controller.doctor.TestCreationController;
+import com.cmasproject.cmastestserver.controller.doctor.TestController;
 import com.cmasproject.cmastestserver.entities.TestRecord;
 import com.cmasproject.cmastestserver.model.test.doctor.CreateTestRequestDTO;
 import com.cmasproject.cmastestserver.model.test.doctor.CreateTestResponseDTO;
 import com.cmasproject.cmastestserver.services.TestService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -19,6 +19,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -28,9 +29,9 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
-@WebMvcTest(TestCreationController.class)
+@WebMvcTest(TestController.class)
 @AutoConfigureMockMvc(addFilters = false)
-class TestCreationControllerTest {
+class TestControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
@@ -72,22 +73,20 @@ class TestCreationControllerTest {
 
     @Test
     void testPatientDoesNotExist() throws Exception {
-        given(testService.isPatientExists(any(UUID.class))).willReturn(false);
+        given(testService.createTest(anyString(), any(UUID.class))).willThrow(new EntityNotFoundException("Could not find Patient for ID: " + patientId));
 
         mockMvc.perform(post(TestConstants.CREATE_TEST_RECORD_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest))
                         .principal(mockAuthentication))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Could not find Patient for ID:" + patientId));
+                .andExpect(jsonPath("$.message").value("Could not find Patient for ID: " + patientId));
 
-        verify(testService).isPatientExists(patientId);
-        verify(testService, never()).createTest(anyString(), any(UUID.class));
+        verify(testService).createTest(anyString(), any(UUID.class));
     }
 
     @Test
     void testSuccessfulTestCreation() throws Exception {
-        given(testService.isPatientExists(any(UUID.class))).willReturn(true);
         given(testService.createTest(anyString(), any(UUID.class))).willReturn(expectedResponse);
 
         mockMvc.perform(post(TestConstants.CREATE_TEST_RECORD_URL)
@@ -97,7 +96,6 @@ class TestCreationControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(content().json(objectMapper.writeValueAsString(expectedResponse)));
 
-        verify(testService).isPatientExists(patientId);
         verify(testService).createTest(mockAuthentication.getName(), patientId);
     }
 
@@ -113,7 +111,6 @@ class TestCreationControllerTest {
                         .principal(mockAuthentication))
                 .andExpect(status().isBadRequest());
 
-        verify(testService, never()).isPatientExists(any(UUID.class));
         verify(testService, never()).createTest(anyString(), any(UUID.class));
     }
 }

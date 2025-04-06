@@ -3,6 +3,7 @@ package com.cmasproject.cmastestserver.services;
 import com.cmasproject.cmastestserver.entities.*;
 import com.cmasproject.cmastestserver.model.test.patient.AssignedTestResponseDTO;
 import com.cmasproject.cmastestserver.model.test.patient.QuestionAnswerRequestDTO;
+import com.cmasproject.cmastestserver.model.test.patient.QuestionNotesResponseDTO;
 import com.cmasproject.cmastestserver.model.test.patient.TestResultsRequestDTO;
 import com.cmasproject.cmastestserver.repository.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -25,12 +26,13 @@ public class PatientServiceImpl implements PatientService {
     private final PatientRepository patientRepository;
     private final AnswerRepository answerRepository;
     private final QuestionRepository questionRepository;
+    private final QuestionNoteRepository questionNoteRepository;
 
 
     @Override
-    public Boolean isTestExists(TestResultsRequestDTO testResults)
+    public Boolean isTestExists(UUID testId)
     {
-        return testRecordRepository.existsById(testResults.getTestId());
+        return testRecordRepository.existsById(testId);
     }
 
     @Override
@@ -39,7 +41,8 @@ public class PatientServiceImpl implements PatientService {
         UUID testAssignmentId = testResults.getTestId();
         List<QuestionAnswerRequestDTO> answerDtos = testResults.getAnswers();
 
-        TestRecord testAssignment = testRecordRepository.getTestRecordById(testAssignmentId);
+        TestRecord testAssignment = testRecordRepository.findTestRecordById(testAssignmentId)
+                .orElseThrow(() -> new EntityNotFoundException("Could not find Test entity for ID: " + testAssignmentId));
 
         Set<UUID> questionIds = answerDtos.stream()
                 .map(QuestionAnswerRequestDTO::getQuestionId)
@@ -78,11 +81,31 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
+    public QuestionNotesResponseDTO loadTestData(UUID testId)
+    {
+        TestRecord testRecord = testRecordRepository.findTestRecordById(testId)
+                .orElseThrow(() -> new EntityNotFoundException("Could not find Test entity for ID: " + testId));
+
+        Map<Integer, String> questionOrderToNotesMap = questionNoteRepository.findQuestionNotesByTestRecord(testRecord).stream()
+                .collect(Collectors.toMap(
+                        questionNote -> questionNote.getQuestion().getQuestionNumber(),
+                        QuestionNote::getNote
+                ));
+
+        return QuestionNotesResponseDTO.builder()
+                .message("Test data loaded successfully.")
+                .testId(testRecord.getId())
+                .questionOrderToNotesMap(questionOrderToNotesMap)
+                .build();
+    }
+
+    @Override
     public List<AssignedTestResponseDTO> getAssignedTests(String patientUsername)
     {
-        User patientUser = userRepository.getUserByUsername(patientUsername);
-        Patient patient = patientRepository.getPatientByUser(patientUser);
-        return testRecordRepository.getTestRecordsByPatient(patient).stream()
+        Patient patient = patientRepository.findByUser_Username(patientUsername)
+                .orElseThrow(() -> new EntityNotFoundException("Could not find Patient entity for username: " + patientUsername));
+
+        return testRecordRepository.findTestRecordsByPatient(patient).stream()
                 .map(testRecord -> {
                     User doctorUser = testRecord.getDoctor().getUser();
                     AssignedTestResponseDTO assignedTest = AssignedTestResponseDTO.builder()
@@ -90,6 +113,7 @@ public class PatientServiceImpl implements PatientService {
                             .doctorFirstName(doctorUser.getFirstName())
                             .doctorLastName(doctorUser.getLastName())
                             .assignedDate(testRecord.getAssignedDate())
+                            .testStatus(testRecord.getStatus())
                             .build();
 
                     return assignedTest;

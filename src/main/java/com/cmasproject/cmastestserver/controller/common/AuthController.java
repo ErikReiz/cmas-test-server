@@ -12,12 +12,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.yaml.snakeyaml.util.Tuple;
 
 import java.util.HashMap;
@@ -43,7 +41,7 @@ public class AuthController {
     @PostMapping("/signup/doctor")
     public ResponseEntity<?> registerDoctor(@Validated @RequestBody SignUpDoctorRequestDTO signUpRequest)
     {
-        performRegistrationChecks(signUpRequest);
+        performDoctorRegistrationChecks(signUpRequest);
 
         SignUpDoctorResponseDTO response = authService.registerDoctor(signUpRequest);
 
@@ -55,7 +53,7 @@ public class AuthController {
         Authentication authenticationResponse = authService.authenticateUser(logInRequest);
 
         if(authenticationResponse == null || !authenticationResponse.isAuthenticated()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials.");
+            throw new BadCredentialsException("Invalid password.");
         }
 
         String jwt = authService.generateJWTToken(authenticationResponse);
@@ -65,10 +63,26 @@ public class AuthController {
                 .build();
     }
 
+    private void performDoctorRegistrationChecks(SignUpDoctorRequestDTO signUpRequest)
+    {
+        Map<String, String> errorMap = new HashMap<>();
+
+        if(authService.licenseNumberExists(signUpRequest)) {
+            errorMap.put("licenseNumber", "License number already exists.");
+        }
+
+        performRegistrationChecks(signUpRequest, errorMap);
+    }
+
     private void performRegistrationChecks(SignUpRequestDTO signUpRequest)
     {
         Map<String, String> errorMap = new HashMap<>();
 
+        performRegistrationChecks(signUpRequest, errorMap);
+    }
+
+    private void performRegistrationChecks(SignUpRequestDTO signUpRequest, Map<String, String> errorMap)
+    {
         if(authService.usernameExists(signUpRequest)) {
             errorMap.put("username", "Username already exists.");
         }
@@ -76,7 +90,7 @@ public class AuthController {
             errorMap.put("email", "Email already exists.");
         }
         if(authService.phoneNumberExists(signUpRequest)) {
-            errorMap.put("phone number", "Phone number already exists.");
+            errorMap.put("phoneNumber", "Phone number already exists.");
         }
 
         if(!errorMap.isEmpty()){
