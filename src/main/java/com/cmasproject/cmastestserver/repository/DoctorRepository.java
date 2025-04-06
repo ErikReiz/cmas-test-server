@@ -2,16 +2,20 @@ package com.cmasproject.cmastestserver.repository;
 
 import com.cmasproject.cmastestserver.entities.Doctor;
 import com.cmasproject.cmastestserver.entities.User;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import javax.print.Doc;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 public interface DoctorRepository extends JpaRepository<Doctor, UUID> {
-    Doctor getDoctorByUser(User user);
+    Set<Doctor> findDoctorsByUser(User userByUsername);
 
-    Set<Doctor> getDoctorsByUser(User userByUsername);
+    Optional<Doctor> findDoctorByUser(User user);
 
-    Doctor findDoctorByUser(User user);
+    Optional<Doctor> findByUser_Username(@NotBlank @Size(min=3, max=50) String userUsername);
+
+    Boolean existsByLicenseNumber(@NotBlank @Size(max = 50) String licenseNumber);
 }

@@ -3,6 +3,7 @@ package com.cmasproject.cmastestserver.controller.doctor;
 import com.cmasproject.cmastestserver.model.AssignPatientsRequestDTO;
 import com.cmasproject.cmastestserver.model.AssignedPatientsResponseDTO;
 import com.cmasproject.cmastestserver.model.PatientResponseDTO;
+import com.cmasproject.cmastestserver.model.test.doctor.TestResponseDTO;
 import com.cmasproject.cmastestserver.services.DoctorService;
 import com.cmasproject.cmastestserver.services.TestService;
 import com.fasterxml.jackson.core.JsonProcessingException;

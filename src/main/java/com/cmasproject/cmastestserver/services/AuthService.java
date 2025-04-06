@@ -17,4 +17,5 @@ public interface AuthService {
     Boolean usernameExists(SignUpRequestDTO request);
     Boolean emailExists(SignUpRequestDTO request);
     Boolean phoneNumberExists(SignUpRequestDTO request);
+    Boolean licenseNumberExists(SignUpDoctorRequestDTO request);
 }

@@ -10,5 +10,6 @@ import java.util.UUID;
 @Builder
 public class CreateTestNotesResponseDTO {
     private String message;
+    private UUID testId;
     private Set<UUID> savedNotesIds;
 }

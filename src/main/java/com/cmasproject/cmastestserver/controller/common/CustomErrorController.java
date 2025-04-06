@@ -24,7 +24,7 @@ public class CustomErrorController {
     private final ObjectMapper objectMapper;
 
     @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity handleUserExistsErrors(UserAlreadyExistsException exception)
+    public ResponseEntity<String> handleUserExistsErrors(UserAlreadyExistsException exception)
     {
         String jsonResponse;
         try {

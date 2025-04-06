@@ -84,15 +84,15 @@ class DoctorRepositoryTest {
 
     @Test
     public void testGetDoctorByUser() {
-        Doctor found = doctorRepository.getDoctorByUser(doctorUser);
+        Doctor found = doctorRepository.findDoctorByUser(doctorUser).orElse(null);
         assertThat(found).isNotNull();
         assertThat(found.getLicenseNumber()).isEqualTo("12345");
         assertThat(found.getSpecialty()).isEqualTo("Cardiology");
     }
 
     @Test
-    public void testGetDoctorsByUser() {
-        Set<Doctor> doctors = doctorRepository.getDoctorsByUser(doctorUser);
+    public void testFindDoctorsByUser() {
+        Set<Doctor> doctors = doctorRepository.findDoctorsByUser(doctorUser);
         assertThat(doctors).isNotEmpty();
         assertThat(doctors).hasSize(1);
         assertThat(doctors.iterator().next().getLicenseNumber()).isEqualTo("12345");
@@ -100,7 +100,7 @@ class DoctorRepositoryTest {
 
     @Test
     public void testFindDoctorByUser() {
-        Doctor found = doctorRepository.findDoctorByUser(doctorUser);
+        Doctor found = doctorRepository.findDoctorByUser(doctorUser).orElse(null);
         assertThat(found).isNotNull();
         assertThat(found.getId()).isEqualTo(doctor.getId());
     }
@@ -119,7 +119,7 @@ class DoctorRepositoryTest {
                 .role(Role.DOCTOR)
                 .build();
 
-        Doctor found = doctorRepository.getDoctorByUser(temporaryUser);
+        Doctor found = doctorRepository.findDoctorByUser(temporaryUser).orElse(null);
         assertThat(found).isNull();
     }
 }

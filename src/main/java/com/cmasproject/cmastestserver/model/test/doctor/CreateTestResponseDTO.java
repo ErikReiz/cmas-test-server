@@ -13,5 +13,6 @@ public class CreateTestResponseDTO {
     private String authorUsername;
     private String patientFirstName;
     private String patientLastName;
+    private UUID testId;
     Map<Integer, UUID> questionOrderToIdMap;
 }

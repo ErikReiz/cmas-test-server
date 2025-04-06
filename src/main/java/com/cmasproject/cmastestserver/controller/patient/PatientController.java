@@ -37,9 +37,6 @@ public class PatientController {
     {
         UUID testUUID = UUID.fromString(testId);
 
-        if(!patientService.isTestExists(testUUID))
-            throw new EntityNotFoundException("Could not find Test entity for ID: " + testId);
-
         QuestionNotesResponseDTO response = patientService.loadTestData(testUUID);
 
         return ResponseEntity.ok().body(response);
@@ -48,9 +45,6 @@ public class PatientController {
     @PostMapping("/upload")
     private ResponseEntity<?> sendTestResults(@Validated @RequestBody TestResultsRequestDTO testResults)
     {
-        if(!patientService.isTestExists(testResults.getTestId()))
-            throw new EntityNotFoundException("Could not find Test entity for ID: " + testResults.getTestId());
-
         patientService.passTestResults(testResults);
         return ResponseEntity.ok("Test results uploaded successfully.");
     }

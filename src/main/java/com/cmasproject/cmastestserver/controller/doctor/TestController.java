@@ -1,10 +1,7 @@
 package com.cmasproject.cmastestserver.controller.doctor;
 
 import com.cmasproject.cmastestserver.model.test.doctor.*;
-import com.cmasproject.cmastestserver.model.PatientResponseDTO;
 import com.cmasproject.cmastestserver.services.TestService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,17 +16,13 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/doctor/test")
+@RequestMapping("/api/doctor/tests")
 @RequiredArgsConstructor
-public class TestCreationController {
+public class TestController {
     private final TestService testService;
-    private final ObjectMapper objectMapper;
 
     @PostMapping("/create")
     public ResponseEntity<?> createTest(@Validated @RequestBody CreateTestRequestDTO request, Authentication authentication) {
-        if(!testService.isPatientExists(request.getPatientId()))
-            throw new EntityNotFoundException("Could not find Patient for ID:" + request.getPatientId());
-
         String doctorUsername = authentication.getName();
 
         CreateTestResponseDTO response = testService.createTest(doctorUsername, request.getPatientId());
@@ -39,9 +32,6 @@ public class TestCreationController {
 
     @PostMapping("/createNotes")
     public ResponseEntity<?> saveTestNotes(@Validated @RequestBody CreateTestNotesRequestDTO request) {
-        if(!testService.isTestExists(request.getTestId()))
-            throw new EntityNotFoundException("Could not find Test entity for ID:" + request.getTestId());
-
         CreateTestNotesResponseDTO response = testService.saveTestNotes(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -50,10 +40,23 @@ public class TestCreationController {
     @GetMapping("/results/{patientId}")
     public ResponseEntity<?> getTestResults(@PathVariable UUID patientId)
     {
-        if(!testService.isPatientExists(patientId))
-            throw new EntityNotFoundException("Could not find Patient for ID:" + patientId);
+        List<TestResultResponseDTO> response = testService.loadPatientTestResults(patientId);
 
-        List<TestResultResponseDTO> response = testService.loadTestResults(patientId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getTests(Authentication authentication) {
+        String doctorUsername = authentication.getName();
+
+        Set<TestResponseDTO> response = testService.getTests(doctorUsername);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/{testId}")
+    public ResponseEntity<?> getFullTestResults(@PathVariable UUID testId) {
+        Set<QuestionAnswerDTO> response = testService.loadTestResults(testId);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

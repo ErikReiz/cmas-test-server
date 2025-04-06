@@ -41,7 +41,8 @@ public class PatientServiceImpl implements PatientService {
         UUID testAssignmentId = testResults.getTestId();
         List<QuestionAnswerRequestDTO> answerDtos = testResults.getAnswers();
 
-        TestRecord testAssignment = testRecordRepository.getTestRecordById(testAssignmentId);
+        TestRecord testAssignment = testRecordRepository.findTestRecordById(testAssignmentId)
+                .orElseThrow(() -> new EntityNotFoundException("Could not find Test entity for ID: " + testAssignmentId));
 
         Set<UUID> questionIds = answerDtos.stream()
                 .map(QuestionAnswerRequestDTO::getQuestionId)
@@ -82,11 +83,10 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public QuestionNotesResponseDTO loadTestData(UUID testId)
     {
-        if(testRecordRepository.existsById(testId))
-            throw new EntityNotFoundException("Could not find Test entity for ID: " + testId);
+        TestRecord testRecord = testRecordRepository.findTestRecordById(testId)
+                .orElseThrow(() -> new EntityNotFoundException("Could not find Test entity for ID: " + testId));
 
-        TestRecord testRecord = testRecordRepository.getTestRecordById(testId);
-        Map<Integer, String> questionOrderToNotesMap = questionNoteRepository.getQuestionNotesByTestRecord(testRecord).stream()
+        Map<Integer, String> questionOrderToNotesMap = questionNoteRepository.findQuestionNotesByTestRecord(testRecord).stream()
                 .collect(Collectors.toMap(
                         questionNote -> questionNote.getQuestion().getQuestionNumber(),
                         QuestionNote::getNote
@@ -102,9 +102,10 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public List<AssignedTestResponseDTO> getAssignedTests(String patientUsername)
     {
-        User patientUser = userRepository.getUserByUsername(patientUsername);
-        Patient patient = patientRepository.getPatientByUser(patientUser);
-        return testRecordRepository.getTestRecordsByPatient(patient).stream()
+        Patient patient = patientRepository.findByUser_Username(patientUsername)
+                .orElseThrow(() -> new EntityNotFoundException("Could not find Patient entity for username: " + patientUsername));
+
+        return testRecordRepository.findTestRecordsByPatient(patient).stream()
                 .map(testRecord -> {
                     User doctorUser = testRecord.getDoctor().getUser();
                     AssignedTestResponseDTO assignedTest = AssignedTestResponseDTO.builder()

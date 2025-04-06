@@ -6,7 +6,6 @@ import com.cmasproject.cmastestserver.entities.TestRecord;
 import com.cmasproject.cmastestserver.entities.User;
 import com.cmasproject.cmastestserver.entities.enums.Role;
 import com.cmasproject.cmastestserver.entities.enums.TestStatus;
-import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,7 +71,7 @@ class TestRecordRepositoryTest {
 
         doctor = Doctor.builder()
                 .user(doctorUser)
-                .specialty("Терапевт")
+                .specialty("Therapist")
                 .licenseNumber("12345")
                 .build();
 
@@ -113,7 +112,7 @@ class TestRecordRepositoryTest {
 
     @Test
     public void testGetTestRecordById() {
-        TestRecord found = testRecordRepository.getTestRecordById(testRecord.getId());
+        TestRecord found = testRecordRepository.findTestRecordById(testRecord.getId()).orElse(null);
         assertThat(found).isNotNull();
         assertThat(found.getStatus()).isEqualTo(TestStatus.ASSIGNED);
         assertThat(found.getDoctor().getUser().getUsername()).isEqualTo("doctoruser");
@@ -121,7 +120,7 @@ class TestRecordRepositoryTest {
 
     @Test
     public void testGetTestRecordsByPatient() {
-        List<TestRecord> records = testRecordRepository.getTestRecordsByPatient(patient);
+        List<TestRecord> records = testRecordRepository.findTestRecordsByPatient(patient);
         assertThat(records).isNotEmpty();
         assertThat(records).hasSize(1);
         assertThat(records.getFirst().getId()).isEqualTo(testRecord.getId());
@@ -129,7 +128,7 @@ class TestRecordRepositoryTest {
 
     @Test
     public void testGetTestRecordByNonExistentId() {
-        TestRecord found = testRecordRepository.getTestRecordById(UUID.randomUUID());
+        TestRecord found = testRecordRepository.findTestRecordById(UUID.randomUUID()).orElse(null);
         assertThat(found).isNull();
     }
 }

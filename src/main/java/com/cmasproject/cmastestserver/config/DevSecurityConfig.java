@@ -1,5 +1,6 @@
 package com.cmasproject.cmastestserver.config;
 
+import com.cmasproject.cmastestserver.controller.common.CustomErrorController;
 import com.cmasproject.cmastestserver.entities.enums.Role;
 import com.cmasproject.cmastestserver.exceptions.CustomAccessDeniedHandler;
 import com.cmasproject.cmastestserver.exceptions.CustomBasicAuthenticationEntryPoint;
@@ -33,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 @Profile("deployment")
 public class DevSecurityConfig {
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
@@ -44,14 +46,12 @@ public class DevSecurityConfig {
 
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .requiresChannel(rcc -> rcc.anyRequest().requiresSecure())
-                .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint())
-                        .accessDeniedHandler(new CustomAccessDeniedHandler()))
+                .requiresChannel(rcc -> rcc.anyRequest().requiresInsecure())
+                .httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()))
+                .exceptionHandling(ehc -> ehc.accessDeniedHandler(new CustomAccessDeniedHandler()))
                 .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()))
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/signup/patient").permitAll()
@@ -59,7 +59,6 @@ public class DevSecurityConfig {
                         .requestMatchers("/api/auth/signup/doctor").hasRole(Role.ADMIN.name())
                         .requestMatchers("/api/doctor/**").hasRole(Role.DOCTOR.name())
                         .requestMatchers("/api/patient/**").hasRole(Role.PATIENT.name())
-                        .requestMatchers("/api/test/**").hasRole(Role.PATIENT.name())
                         .anyRequest().authenticated())
                 .csrf(AbstractHttpConfigurer::disable);
 
@@ -79,8 +78,6 @@ public class DevSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOriginPattern("http://localhost:*");
-        configuration.addAllowedOriginPattern("http://127.0.0.1:5500");
         configuration.addExposedHeader("*");
         configuration.setAllowedMethods(Collections.singletonList("*"));
         configuration.setAllowedHeaders(Collections.singletonList("*"));
