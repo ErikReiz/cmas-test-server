@@ -52,13 +52,6 @@ public class CustomErrorController {
                 .body("{\"message\":\"" + exception.getMessage() + "\"}");
     }
 
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<String> handleUsernameNotFoundErrors(EntityNotFoundException exception) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body("{\"error\":\"" + exception.getMessage() + "\"}");
-    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<List<Map<String, String>>> handleBindErrors(MethodArgumentNotValidException exception) {
         List<Map<String, String>> errorList = exception.getFieldErrors().stream()
