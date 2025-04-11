@@ -1,6 +1,7 @@
 package com.cmasproject.cmastestserver.services;
 
 import com.cmasproject.cmastestserver.entities.*;
+import com.cmasproject.cmastestserver.entities.enums.TestStatus;
 import com.cmasproject.cmastestserver.model.test.patient.*;
 import com.cmasproject.cmastestserver.repository.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -73,6 +74,7 @@ public class PatientServiceImpl implements PatientService {
         answerRepository.saveAll(answersToSave);
 
         testAssignment.setCompletedDate(LocalDateTime.now());
+        testAssignment.setStatus(TestStatus.COMPLETED);
         testAssignment.setTotalCmasScore(totalScore.get());
         testRecordRepository.save(testAssignment);
     }

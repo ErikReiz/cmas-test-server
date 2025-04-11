@@ -97,6 +97,8 @@ public class TestServiceImpl implements TestService, PatientMapper {
         return testRecordRepository.findTestRecordsByPatient(patient).stream()
                  .map(testRecord -> TestResultResponseDTO.builder()
                          .testId(testRecord.getId())
+                         .testStatus(testRecord.getStatus())
+                         .assignedDate(testRecord.getAssignedDate())
                          .totalCmasScore(testRecord.getTotalCmasScore())
                          .completedDate(testRecord.getCompletedDate())
                          .build()).collect(Collectors.toList());
