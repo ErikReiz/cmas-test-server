@@ -28,7 +28,7 @@ public class TestServiceImpl implements TestService, PatientMapper {
     @Override
     public CreateTestResponseDTO createTest(String doctorUsername, UUID patientId)
     {
-        final int numberOfQuestions = 15;
+        final int numberOfQuestions = 14;
 
         Doctor doctor = doctorRepository.findByUser_Username(doctorUsername)
                 .orElseThrow(() -> new EntityNotFoundException("Could not find Doctor entity for username: " + doctorUsername));
