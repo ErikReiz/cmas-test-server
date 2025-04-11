@@ -1,0 +1,90 @@
+@startuml
+!theme plain
+
+node "Client" as client
+cloud "HTTP Requests" as requests
+cloud "HTTP Response" as response
+
+package "Controllers" {
+  package "Common" {
+    [AuthController]
+    [CustomErrorController] #LightGreen
+  }
+  package "Doctor" {
+    [DoctorController]
+    [TestController]
+  }
+  package "Patient" {
+    [PatientController]
+  }
+}
+
+package "Security" {
+}
+
+package "Services" {
+  [AuthService]
+  [DoctorService]
+  [PatientService]
+  [TestService]
+}
+
+package "Entities" {
+  ' JPA entities
+}
+
+' Repository & DB Layer
+package "Repository Layer" {
+  [UserRepository]
+  [PatientRepository]
+  [DoctorRepository]
+  [TestRecordRepository]
+  [QuestionRepository]
+  [AnswerRepository]
+  [QuestionNoteRepository]
+}
+database "MySQL Database" as db {
+  [CmasTestDB]
+}
+
+package "Exceptions" {
+}
+
+
+client -down-> requests : sends
+requests -[hidden]down- response
+response -up-> client : return
+
+requests -down-> Security : pass through
+Security -down-> Controllers : protects
+
+Controllers -down-> Services : use
+
+
+Entities <-down-> "Repository Layer" : persist / return
+Entities <-up-> Services : return
+
+"Repository Layer" -down-> db : store
+
+Controllers -up-> response : send
+
+Controllers -[hidden]right-> Exceptions
+
+AuthController .> Exceptions : throws
+DoctorController .> Exceptions : throws
+TestController .> Exceptions : throws
+PatientController .> Exceptions : throws
+
+Exceptions -left-> [CustomErrorController] : handles
+
+
+note bottom of CustomErrorController
+  Centralized handling of all exceptions
+end note
+
+note right of Entities
+  JPA entities for
+  database storage
+end note
+
+@enduml

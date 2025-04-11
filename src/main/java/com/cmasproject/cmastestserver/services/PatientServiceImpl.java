@@ -1,10 +1,7 @@
 package com.cmasproject.cmastestserver.services;
 
 import com.cmasproject.cmastestserver.entities.*;
-import com.cmasproject.cmastestserver.model.test.patient.AssignedTestResponseDTO;
-import com.cmasproject.cmastestserver.model.test.patient.QuestionAnswerRequestDTO;
-import com.cmasproject.cmastestserver.model.test.patient.QuestionNotesResponseDTO;
-import com.cmasproject.cmastestserver.model.test.patient.TestResultsRequestDTO;
+import com.cmasproject.cmastestserver.model.test.patient.*;
 import com.cmasproject.cmastestserver.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -86,11 +83,13 @@ public class PatientServiceImpl implements PatientService {
         TestRecord testRecord = testRecordRepository.findTestRecordById(testId)
                 .orElseThrow(() -> new EntityNotFoundException("Could not find Test entity for ID: " + testId));
 
-        Map<Integer, String> questionOrderToNotesMap = questionNoteRepository.findQuestionNotesByTestRecord(testRecord).stream()
-                .collect(Collectors.toMap(
-                        questionNote -> questionNote.getQuestion().getQuestionNumber(),
-                        QuestionNote::getNote
-                ));
+        List<NoteResponseDTO> questionOrderToNotesMap = questionNoteRepository.findQuestionNotesByTestRecord(testRecord).stream()
+                .map(obj -> NoteResponseDTO.builder()
+                        .questionOrder(obj.getQuestion().getQuestionNumber())
+                        .questionId(obj.getQuestion().getId())
+                        .note(obj.getNote())
+                        .build())
+                .collect(Collectors.toList());
 
         return QuestionNotesResponseDTO.builder()
                 .message("Test data loaded successfully.")
