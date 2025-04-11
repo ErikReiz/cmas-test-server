@@ -83,11 +83,20 @@ public class PatientServiceImpl implements PatientService {
         TestRecord testRecord = testRecordRepository.findTestRecordById(testId)
                 .orElseThrow(() -> new EntityNotFoundException("Could not find Test entity for ID: " + testId));
 
-        List<NoteResponseDTO> questionOrderToNotesMap = questionNoteRepository.findQuestionNotesByTestRecord(testRecord).stream()
-                .map(obj -> NoteResponseDTO.builder()
-                        .questionOrder(obj.getQuestion().getQuestionNumber())
-                        .questionId(obj.getQuestion().getId())
-                        .note(obj.getNote())
+        List<QuestionNote> notes = questionNoteRepository.findQuestionNotesByTestRecord(testRecord);
+
+        Map<UUID, String> questionToNoteMap = notes.stream()
+                .collect(Collectors.toMap(
+                        note -> note.getQuestion().getId(),
+                        QuestionNote::getNote
+                ));
+
+        List<NoteResponseDTO> questionOrderToNotesMap = questionRepository.findQuestionByTestRecord(testRecord)
+                .stream()
+                .map(question -> NoteResponseDTO.builder()
+                        .questionOrder(question.getQuestionNumber())
+                        .questionId(question.getId())
+                        .note(questionToNoteMap.getOrDefault(question.getId(), ""))
                         .build())
                 .collect(Collectors.toList());
 
