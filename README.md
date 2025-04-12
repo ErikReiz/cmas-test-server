@@ -1,6 +1,6 @@
 # CMAS Test Server
 
-This repository contains the backend server application for the CMAS (Clinical Measurement Aggregation System - assumption based on context) project. It is built using Spring Boot.
+This repository contains the backend server application for the CMAS (Clinical Measurement Aggregation System) project. It is built using Spring Boot.
 
 ## Overview
 
